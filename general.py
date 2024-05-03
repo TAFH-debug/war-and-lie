@@ -21,7 +21,8 @@ class Texture:
         self.texture: Surface = texture
         self.frames: int = frames
         self.current: int = 0
-        self.width, self.height = size
+        self.width, self.height = size 
+        
     def nextFrame(self) -> None:
         self.current = (self.current + 1) % self.frames
     def getFrameCoords(self, curr: int = None) -> tuple[int, int, int, int]:
