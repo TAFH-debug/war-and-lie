@@ -10,13 +10,13 @@ def draw_all(window: pygame.Surface):
         for k in v:
             k.draw(window)
 
-def draw_menu(window, nm):
+def draw_menu(window: pygame.Surface, nm: str):
     for i in widgets[nm]:
         i.draw(window)
 
-def update_menu(events, nm):
+def update_menu(events: list[pygame.event.Event], nm: str):
     for i in widgets[nm]:
         i.update(events)
 
-def add_widget(nm, widget):
+def add_widget(nm: str, widget: Widget):
     widgets[nm].append(widget)

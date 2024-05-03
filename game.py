@@ -6,8 +6,7 @@ display: pygame.Surface = None
 def draw():
     display.fill((0, 0, 0))
     
-
-def update():
+def update(events: list[pygame.event.Event]):
     pass
 
 def init():
@@ -16,4 +15,5 @@ def init():
 
 def game_cycle():
     draw()
-    update()
+    events = pygame.event.get()
+    update(events)
