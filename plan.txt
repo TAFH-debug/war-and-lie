@@ -1,0 +1,6 @@
+sanzhar:
+  classes Units and Buildings
+  sprites/images/pictures in pixel style
+  server - client local system
+talim:
+  
