@@ -100,3 +100,27 @@ class Button(Widget):
             if i.type == pygame.MOUSEBUTTONUP and self.is_clicked:
                 self.is_clicked = False
                 self.cmd(self.data)
+                
+class Menu:
+    is_disabled: bool
+    widgets: list[Widget]
+    name: str
+    
+    def __init__(self, name) -> None:
+        self.name = name
+        self.is_disabled = False
+        self.widgets = []
+        
+    def add_widget(self, widget: Widget):
+        self.widgets.append(widget)
+        
+    def draw(self, window):
+        if self.is_disabled: return
+        for i in self.widgets:
+            i.draw(window)
+            
+    def update(self, events: list[pygame.event.Event]):
+        if self.is_disabled: return
+        for i in self.widgets:
+            i.update(events)
+            
