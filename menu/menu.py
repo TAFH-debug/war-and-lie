@@ -4,6 +4,7 @@ widgets: dict[str, Menu] = dict()
 
 def add_menu(nm: str):
     widgets[nm] = Menu(nm)
+    return widgets[nm]
 
 def draw_all(window: pygame.Surface):
     for v in widgets.values():

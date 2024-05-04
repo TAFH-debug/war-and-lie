@@ -47,7 +47,7 @@ class HasTexture:
         self.surface: Surface = texture.surface
         self.frames: int = texture.frames
         self.current: int = 0
-        self.width, self.height = texture.width, texture.height
+        self.width, self.height = (texture.width // texture.frames), texture.height
         
     # Counts frames and borders them by variable "frames"
     def nextFrame(self) -> None: 
@@ -62,7 +62,7 @@ class HasTexture:
     def blit(self, display: Surface, cords: tuple[int, int]) -> None:
         self.surface.blit(display, cords, self.getFrameCoords())
         
-class GenericUnit(HasTexture, Alive):
+class GenericObject(HasTexture, Alive):
     x: int
     y: int
     velocity_x: int
