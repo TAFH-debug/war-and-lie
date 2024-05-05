@@ -1,5 +1,6 @@
 from pygame import Surface
 from textures import Texture
+from util import *
 import pygame
 
 # Needed for hp (or other things that have max value and are positive only)
@@ -47,7 +48,7 @@ class HasTexture:
         self.surface: Surface = texture.surface
         self.frames: int = texture.frames
         self.current: int = 0
-        self.width, self.height = (texture.width // texture.frames), texture.height
+        self.size = DoubleNumber(texture.width//self.frames, texture.height)
         
     # Counts frames and borders them by variable "frames"
     def nextFrame(self) -> None: 
@@ -56,24 +57,53 @@ class HasTexture:
     # gives current frame's positions and size
     def getFrameCoords(self, curr: int = None) -> tuple[int, int, int, int]:
         if curr == None: curr = self.current 
-        return (self.width * self.current, 0, self.width, self.height)
+        return (self.size.x * self.current, 0, self.size.x, self.size.y)
     
     # blits texture on display
-    def blit(self, display: Surface, cords: tuple[int, int]) -> None:
+    # TODO texture also should be able to rotated and scaled
+    def blit(self, display: Surface, cords: tuple[int, int]) -> None: 
         self.surface.blit(display, cords, self.getFrameCoords())
-        
-class GenericObject(HasTexture, Alive):
-    x: int
-    y: int
-    velocity_x: int
-    velocity_y: int
+
+# generic class for all objects that has texture and position
+class GenericObject(HasTexture):
+    pos: DoubleNumber[int, int]
+    direction: Angle
     
-    def __init__(self, texture: Texture, hp: int) -> None:
+    def __init__(self, texture: Texture) -> None:
         HasTexture().__init__(texture)
-        Alive().__init__(hp)
-        
+    
+    def getRelatedCords(self, size: DoubleNumber[int, int]) -> list[DoubleNumber[int, int]]:
+        delta = [
+            DoubleNumber(-1, -1),
+            DoubleNumber(0, -1),
+            DoubleNumber(1, -1),
+            DoubleNumber(1, 0),
+            DoubleNumber(1, 1),
+            DoubleNumber(0, 1),
+            DoubleNumber(-1, 1),
+            DoubleNumber(-1, 0)
+        ]
+        result = []
+        for d in range(8):
+            result.append(self.pos + delta[d])
+        return result
     def update(self, events: list[pygame.event.Event]):
         pass
     
-    def draw(self, window: Surface):
+    def draw(self, window: Surface): 
         pass
+
+class GenericAliveObject(GenericObject, Alive):
+    
+    velocity: DoubleNumber[int, int]
+
+    def __init__(self, texture: Texture, hp: int) -> None:
+        GenericObject().__init__(texture)
+        Alive().__init__(hp)
+
+class GenericMap:
+    size: DoubleNumber[int, int]
+    Map: list[list[GenericObject]]
+
+    def __init__(self, size: DoubleNumber[int, int]) -> None:
+        self.size = size
