@@ -1,5 +1,5 @@
 import pygame
-from menu import *
+from .menu import *
 
 display: pygame.Surface = None
 

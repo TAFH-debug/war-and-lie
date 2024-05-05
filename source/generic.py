@@ -1,7 +1,7 @@
 from pygame import Surface
-from textures import Texture
-from util import *
 import pygame
+from .textures import Texture
+from .util import *
 
 # Needed for hp (or other things that have max value and are positive only)
 class Alive:

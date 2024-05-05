@@ -3,4 +3,10 @@ sanzhar:
   sprites/images/pictures in pixel style
   server - client local system
 talim:
+  networking
+  interface
+  tech tree
+erioxa:
+  todo
+
   

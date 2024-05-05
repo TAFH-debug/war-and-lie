@@ -1,5 +1,5 @@
 import pygame
-from game import game_cycle, init
+from .game import game_cycle, init
 
 
 def main():
