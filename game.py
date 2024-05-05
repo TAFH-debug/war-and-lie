@@ -5,12 +5,13 @@ display: pygame.Surface = None
 
 def draw():
     display.fill((0, 0, 0))
-    draw_all()
+    draw_all(display)
     
 def update(events: list[pygame.event.Event]):
     pass
 
 def init():
+    global display
     display = pygame.display.set_mode((900, 1200))
     pygame.display.set_caption("ABOBA")
     
@@ -18,6 +19,7 @@ def init():
     
 
 def game_cycle():
-    draw()
-    events = pygame.event.get()
-    update(events)
+    while True:
+        draw()
+        events = pygame.event.get()
+        update(events)

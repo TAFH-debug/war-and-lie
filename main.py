@@ -1,9 +1,10 @@
 import pygame
-from game import game_cycle
+from game import init, game_cycle
 
 
 def main():
     pygame.init()
+    init()
     game_cycle()
     
     
