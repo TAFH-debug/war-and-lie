@@ -25,8 +25,9 @@ class Widget:
 class Text:
 
     def __init__(self, text: str, 
-                 font: pygame.font.Font = pygame.font.SysFont("Arial", 20), 
+                 font: pygame.font.Font = None, 
                  color: tuple[int, int, int] = (0, 0, 0)):
+        font = font or pygame.font.SysFont("Arial", 20)
         self.text = text
         self.font = font
         self.color = color
@@ -66,9 +67,10 @@ class Label(Widget):
 class Button(Widget):
     
     def __init__(self, x, y, width, height, clicked: Clicked, color=(255, 0, 0), border: Border=None, cmd=lambda: (), 
-                 text=Text("", None, (0, 0, 0)), data=None):
+                 text=None, data=None):
         Widget.__init__(self, x, y, width, height)
-
+        text = text or Text("")
+        
         self.text = text
         self.border = border
         self.color = color
