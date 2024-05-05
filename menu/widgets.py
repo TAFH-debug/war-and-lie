@@ -11,9 +11,9 @@ class Widget:
         self.y = y
         self.width = width
         self.height = height
-        self.childs = []
+        self.childs: list[Widget] = []
 
-    def draw(self, window):
+    def draw(self, window: pygame.Surface):
         for i in self.childs:
             i.draw(window)
 
@@ -24,7 +24,10 @@ class Widget:
 
 class Text:
 
-    def __init__(self, text, font, color):
+    def __init__(self, text: str, 
+                 font: pygame.font.Font = None, 
+                 color: tuple[int, int, int] = (0, 0, 0)):
+        font = font or pygame.font.SysFont("Arial", 20)
         self.text = text
         self.font = font
         self.color = color
@@ -44,13 +47,13 @@ class Border:
 
 class Label(Widget):
 
-    def __init__(self, x, y, text):
+    def __init__(self, x, y, text: Text):
         self.text = text
         width, height = self.text.font.render(self.text.text, False, self.text.color).get_size()
 
         super().__init__(x, y, width, height)
 
-    def draw(self, window):
+    def draw(self, window: pygame.Surface):
         super().draw(window)
 
         txt = self.text.font.render(self.text.text, False, self.text.color)
@@ -63,10 +66,11 @@ class Label(Widget):
 
 class Button(Widget):
     
-    def __init__(self, x, y, width, height, clicked, color=(255, 0, 0), border: Border=None, cmd=lambda: (), 
-                 text=Text("", None, (0, 0, 0)), data=None):
+    def __init__(self, x, y, width, height, clicked: Clicked, color=(255, 0, 0), border: Border=None, cmd=lambda: (), 
+                 text=None, data=None):
         Widget.__init__(self, x, y, width, height)
-
+        text = text or Text("")
+        
         self.text = text
         self.border = border
         self.color = color
@@ -90,7 +94,7 @@ class Button(Widget):
         txt = self.text.font.render(self.text.text, False, self.text.color)
         window.blit(txt, (self.x + (self.width - txt.get_width()) / 2, self.y + (self.height - txt.get_height()) / 2) + txt.get_size())
 
-    def update(self, events):
+    def update(self, events: list[pygame.event.Event]):
         super().update(events)
 
         rc = pygame.Rect(self.x, self.y, self.width, self.height)

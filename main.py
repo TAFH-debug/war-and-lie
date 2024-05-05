@@ -1,9 +1,10 @@
 import pygame
-from game import init, game_cycle
+from game import game_cycle, init
 
 
 def main():
     pygame.init()
+    pygame.font.init()
     init()
     game_cycle()
     
