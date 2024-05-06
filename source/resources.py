@@ -1,9 +1,7 @@
-import pygame
-import sys
 import random
-from generic import CountAble
-
-pygame.init()
+from .generic import CountAble, GenericObject
+from .util import DoubleNumber
+from .textures import Texture
 
 # Цвета
 WHITE = (255, 255, 255)
@@ -15,80 +13,114 @@ WOOD_COLOR = (34, 139, 34)  # цвет для деревьев
 
 # Основной класс для ресурсов
 class Resource(CountAble):
-    def __init__(self, name, color, initial_amount, income):
+    name: str
+    color: tuple[int, int, int]
+    initial_amount: int
+    income: int
+
+    def __init__(self, name: str, color: tuple[int, int, int], initial_amount: int, income: int) -> None:
         super().__init__(initial_amount, income)
         self.name = name
         self.color = color
 
-    def increase(self, amount=None):
-        if amount is None:
+    def increase(self, amount: int = None) -> None:
+        if amount == None:
             self.change()
         else:
             self.change(self.value + amount)
 
-    def decrease(self, amount):
+    def decrease(self, amount: int) -> None:
         self.change(max(self.value - amount, 0))
 
 # Класс для шахт и деревьев
-class ResourceSource:
-    def __init__(self, name, color, position, production_rate):
+class ResourceSource(GenericObject):
+    name: str
+    color: tuple[int, int, int]
+    production_rate: int
+
+    def __init__(self, name: str, color: tuple[int, int, int], pos: DoubleNumber[int, int], production_rate: int, texture: Texture) -> None:
+        GenericObject().__init__(texture)
         self.name = name
         self.color = color
-        self.position = position
+        self.pos = pos
         self.production_rate = production_rate
         self.timer = 0
 
-    def update(self):
+    def update(self) -> bool:
         # Обновляем количество ресурсов
         self.timer += 1
-        if self.timer >= self.production_rate:
+        if self.timer == self.production_rate:
             self.timer = 0
             return True
         return False
 
+class Cost:
+    costs: list[Resource]
+
+    def __init__(self, costs: list[Resource]) -> None:
+        self.costs = costs
+    
+    def fit(self, resources: list[Resource]) -> bool:
+        for cost in self.costs:
+            for res in resources:
+                if cost.name == res.name and cost() > res():
+                    return False
+        return True
+    
+    def buy(self, resources: list[Resource]) -> bool:
+        if self.fit(resources):
+            for cost in self.costs:
+                for res in resources:
+                    if cost.name == res.name:
+                        res.decrease(cost.value)
+                        continue
+            return True
+        return False
+            
 # Класс для покупки
 class Services:
-    def __init__(self):
-        self.services = {}#cписок доступных покупок
+    services: map[str: Cost]
 
-    def add_service(self, name, cost):
+    def __init__(self) -> None:
+        self.services: map[str: Cost] = {}#cписок доступных покупок
+
+    def add_service(self, name: str, cost: Cost) -> None:
         self.services[name] = cost
 
-    def buy_service(self, resource, service_name):
+    def buy_service(self, resources: list[Resource], service_name: str) -> bool:
         if service_name in self.services:
-            cost = self.services[service_name]
-            if resource.value >= cost:
-                resource.change(resource.value - cost)
-                print("Приобретена:", service_name)
-            else:
-                print("Недостаточно ресурсов")
+            cost: Cost = self.services[service_name]
+            return cost.buy(resources)
         else:
-            print("Error")
+            return False
 
+if __name__ == "__main__":
+    WIDTH = HEIGHT = 150
+    services = Services()
 
-services = Services()
+    # Example услуг
+    services.add_service("Healing", 20)
+    services.add_service("Upgrade", 50) 
 
-# Example услуг
-services.add_service("Healing", 20)
-services.add_service("Upgrade", 50) 
+    # Создание ресурсов
+    gold = Resource("Gold", GOLD_COLOR, 100, 0)
+    iron = Resource("Iron", IRON_COLOR, 50, 0)
+    wood = Resource("Wood", WOOD_COLOR, 80, 0)
 
-# Создание ресурсов
-gold = Resource("Gold", GOLD_COLOR, 100, 0)
-iron = Resource("Iron", IRON_COLOR, 50, 0)
-wood = Resource("Wood", WOOD_COLOR, 80, 0)
+    # Создание шахт
+    gold_mine = ResourceSource("Gold Mine", GOLD_COLOR, (300, 200), 100)  # Генерация золота каждые 100 кадров
+    iron_mine = ResourceSource("Iron Mine", IRON_COLOR, (400, 400), 150)  # Генерация железа каждые 150 кадров
 
-# Создание шахт
-gold_mine = ResourceSource("Gold Mine", GOLD_COLOR, (300, 200), 100)  # Генерация золота каждые 100 кадров
-iron_mine = ResourceSource("Iron Mine", IRON_COLOR, (400, 400), 150)  # Генерация железа каждые 150 кадров
-
-# Создание деревьев
-wood_forests = []
-for _ in range(3):
-    position = (random.randint(50, WIDTH - 50), random.randint(50, HEIGHT - 50))
-    wood_forest = ResourceSource("Wood Forest", WOOD_COLOR, position, 120)
-    wood_forests.append(wood_forest)
+    # Создание деревьев
+    wood_forests = []
+    for _ in range(3):
+        position = (random.randint(50, WIDTH - 50), random.randint(50, HEIGHT - 50))
+        wood_forest = ResourceSource("Wood Forest", WOOD_COLOR, position, 120)
+        wood_forests.append(wood_forest)
 
 # Exampe отрисовки и т.д.
+#import pygame
+#pygame.init()
 #while True:
 #    screen.fill(WHITE)
 #    if gold_mine.update():
