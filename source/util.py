@@ -1,4 +1,5 @@
 from math import pi
+from typing import Callable
 
 class DoubleNumber[T]:
     """
@@ -25,6 +26,9 @@ class DoubleNumber[T]:
     def __sub__(self, other: "DoubleNumber[T]") -> "DoubleNumber[T]":
         return DoubleNumber(self.x - other.x, self.y - other.y)
     
+    def operation(self, other: "DoubleNumber[T]", operation: Callable[[int, int], int]) -> "DoubleNumber[T]":
+        return DoubleNumber(operation(self.x, other.x), operation(self.y, other.y))
+    
 class Angle:
     """
     class that represent angles in radians
@@ -36,13 +40,13 @@ class Angle:
         self.angle = angle 
         self.bound()
 
-    def Set(self, angle: float, isDeegre: bool = False):
+    def set(self, angle: float, isDeegre: bool = False):
         if isDeegre: 
             angle = angle * pi / 180
         self.angle = angle
         self.bound()
     
-    def Get(self, isDeegre: bool = False):
+    def get(self, isDeegre: bool = False):
         if isDeegre: 
             return self.angle * 180 / pi
         return self.angle
@@ -51,14 +55,14 @@ class Angle:
         self.angle %= (2 * pi)
     
     def __add__(self, other: "Angle") -> "Angle":
-        return Angle(self.Get()+other.Get())
+        return Angle(self.get()+other.get())
     def __add__(self, other: int) -> "Angle":
-        return Angle(self.Get()+other)
+        return Angle(self.get()+other)
     
     def __sub__(self, other: "Angle") -> "Angle":
-        return Angle(self.Get()-other.Get())
+        return Angle(self.get()-other.get())
     def __sub__(self, other: int) -> "Angle":
-        return Angle(self.Get()-other)
+        return Angle(self.get()-other)
     
     def __repr__(self) -> str:
         return str(self.angle)

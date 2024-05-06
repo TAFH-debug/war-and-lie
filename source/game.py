@@ -19,7 +19,8 @@ def init():
     global display
     display = pygame.display.set_mode((1000, 600))
     pygame.display.set_caption("War and lie")
-    
+
+def main_menu():
     add_menu("Main").add_widget(
         Label(100, 100, Text(
             "Hello!", pygame.font.SysFont("Arial", 60), (255, 0, 0)

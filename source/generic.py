@@ -67,6 +67,7 @@ class HasTexture:
 # generic class for all objects that has texture and position
 class GenericObject(HasTexture):
     pos: DoubleNumber[int, int]
+    size: DoubleNumber[int, int]
     direction: Angle
     
     def __init__(self, texture: Texture) -> None:
@@ -85,7 +86,8 @@ class GenericObject(HasTexture):
         ]
         result = []
         for d in range(8):
-            result.append(self.pos + delta[d])
+            # TODO it should be voted for cycled or bordered map
+            result.append((self.pos + delta[d]).operation(size, lambda a, b: a % b)) 
         return result
     def update(self, events: list[pygame.event.Event]):
         pass
