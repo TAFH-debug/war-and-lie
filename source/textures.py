@@ -21,4 +21,4 @@ class Textures():
     
     # Example texture
     ship = Texture(pygame.image.load(SPRITE_PATH + "/ship.png"), (64, 64), 4)
-    
+    water = Texture(pygame.image.load(SPRITE_PATH + "/water.png"), (64, 64), 1)

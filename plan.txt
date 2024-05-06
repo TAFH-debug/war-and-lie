@@ -1,17 +1,16 @@
 sanzhar:
   even more todo
-  classes Units and Buildings
-  sprites/images/pictures in pixel style
-  server - client local system
+  classes Units and Buildings : IN PROGRESS
+  sprites/images/pictures in pixel style : NOT STARTED
 talim:
   more todo
-  networking
-  interface
-  tech tree
+  networking : IN PROGRESS
+  interface : IN PROGRESS
+  tech tree : NOT STARTED
 erioxa:
   todo
-  resources
-  resources source
+  resources : DONE
+  resources source : DONE
 
 
   
