@@ -56,11 +56,13 @@ class Angle:
     
     def __add__(self, other: "Angle") -> "Angle":
         return Angle(self.get()+other.get())
+    
     def __add__(self, other: int) -> "Angle":
         return Angle(self.get()+other)
     
     def __sub__(self, other: "Angle") -> "Angle":
         return Angle(self.get()-other.get())
+    
     def __sub__(self, other: int) -> "Angle":
         return Angle(self.get()-other)
     
