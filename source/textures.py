@@ -15,10 +15,10 @@ class Texture:
 class Textures():
     """
     There should be all textures that will be used in game.
-    For optimisation puposes.
+    For optimisation purposes.
     """
     
     
     # Example texture
-    ship = Texture(pygame.image.load(SPRITE_PATH + "/ship.png"), (64, 64), 4)
+    ship = Texture(pygame.image.load(SPRITE_PATH + "/ship.png"), (64, 64), 2)
     water = Texture(pygame.image.load(SPRITE_PATH + "/water.png"), (64, 64), 1)
