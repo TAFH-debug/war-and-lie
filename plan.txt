@@ -1,12 +1,15 @@
 sanzhar:
+  even more todo
   classes Units and Buildings
   sprites/images/pictures in pixel style
   server - client local system
 talim:
+  more todo
   networking
   interface
   tech tree
 erioxa:
+  todo
   resources
   resources source
 
