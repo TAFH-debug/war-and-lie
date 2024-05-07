@@ -23,9 +23,14 @@ class Tile(GenericObject):
     height: int # TODO in another version height have to be used
     isTaken: bool # if smth\smbd stands on this tile
 
-    def __init__(self, pos: DoubleNumber[int, int], landscape: Landscape) -> None:
-        GenericObject().__init__(landscape.texture)
+    def __init__(self, pos: DoubleNumber[int], landscape: Landscape) -> None:
+        super().__init__(landscape.texture)
         self.pos = pos
         self.landscape = landscape
         self.isTaken = False
-        
+    
+    def __eq__(self, other: "Tile") -> bool:
+        return (self.pos == other.pos)
+
+    def __ne__(self, other: "Tile") -> bool:
+        return (self.pos != other.pos)

@@ -19,7 +19,7 @@ class Resource(CountAble):
     income: int
 
     def __init__(self, name: str, color: tuple[int, int, int], initial_amount: int, income: int) -> None:
-        super().__init__(initial_amount, income)
+        CountAble.__init__(initial_amount, income)
         self.name = name
         self.color = color
 
@@ -38,7 +38,7 @@ class ResourceSource(GenericObject):
     color: tuple[int, int, int]
     production_rate: int
 
-    def __init__(self, name: str, color: tuple[int, int, int], pos: DoubleNumber[int, int], production_rate: int, texture: Texture) -> None:
+    def __init__(self, name: str, color: tuple[int, int, int], pos: DoubleNumber[int], production_rate: int, texture: Texture) -> None:
         GenericObject().__init__(texture)
         self.name = name
         self.color = color

@@ -2,8 +2,10 @@ sanzhar:
   even more todo
   classes Units and Buildings : IN PROGRESS
   sprites/images/pictures in pixel style : NOT STARTED
+  first unit test : IN PROGRESS
 talim:
   more todo
+  BFS, path finding : NOT STARTED
   networking : IN PROGRESS
   interface : IN PROGRESS
   tech tree : NOT STARTED
@@ -11,6 +13,3 @@ erioxa:
   todo
   resources : DONE
   resources source : DONE
-
-
-  

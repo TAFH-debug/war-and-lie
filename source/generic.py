@@ -37,6 +37,9 @@ class Damage:
     def __getitem__(self, index: int) -> int:
         return self.damage[index]
 
+    def __setitem__(self, index: int, value: int) -> None:
+        self.damage[index] = value
+
 class AliveInArmor(Alive):
     armorType: int
     armor: int
@@ -88,14 +91,14 @@ class HasTexture:
 
 # generic class for all objects that has texture and position
 class GenericObject(HasTexture):
-    pos: DoubleNumber[int, int]
-    size: DoubleNumber[int, int]
+    pos: DoubleNumber[int]
+    size: DoubleNumber[int]
     direction: Angle
     
     def __init__(self, texture: Texture) -> None:
-        HasTexture().__init__(texture)
+        super().__init__(texture)
     
-    def getRelatedCords(self, size: DoubleNumber[int, int]) -> list[DoubleNumber[int, int]]:
+    def getRelatedCords(self, size: DoubleNumber[int]) -> list[DoubleNumber[int]]:
         delta = [
             DoubleNumber(-1, -1),
             DoubleNumber(0, -1),
@@ -117,17 +120,27 @@ class GenericObject(HasTexture):
     def draw(self, window: Surface): 
         pass
 
-class GenericAliveObject(GenericObject, AliveInArmor):
+class GenericAliveObject(GenericObject):
     
-    velocity: DoubleNumber[int, int]
+    velocity: DoubleNumber[int]
 
     def __init__(self, texture: Texture, hp: int, armorType: int, armor: int) -> None:
-        GenericObject().__init__(texture)
-        AliveInArmor().__init__(armorType, armor, hp)
+        super().__init__(texture) 
+        self.hp = AliveInArmor(armorType, armor, hp)
+        """
+        я потратил на это решение 2 часа чтения
+        и придя к выводу что двойное наследование в питоне 
+        нормально никогда не реализовать сделал такие вот костыли
+        """
+class GenericMap[T]:
+    size: DoubleNumber[int]
+    Map: list[list[T]]
 
-class GenericMap:
-    size: DoubleNumber[int, int]
-    Map: list[list[GenericObject]]
-
-    def __init__(self, size: DoubleNumber[int, int]) -> None:
+    def __init__(self, size: DoubleNumber[int]) -> None:
         self.size = size
+
+    def __getitem__(self, index: int) -> list[T]:
+        return self.Map[index]
+    
+    def get(self, pos: DoubleNumber) -> T:
+        return self.Map[pos.y][pos.x]
