@@ -2,6 +2,7 @@ from pygame import Surface
 import pygame
 from .textures import Texture
 from .util import *
+from typing import Iterable
 
 # Needed for hp (or other things that have max value and are positive only)
 class Alive:
@@ -26,6 +27,27 @@ class Alive:
     # makes it easy to access to value (use " a() ")
     def __call__(self) -> int:
         return self.value
+
+class Damage:
+    damage: list[int]
+
+    def __init__(self, damage: Iterable[int]) -> None:
+        self.damage = list(damage)
+
+    def __getitem__(self, index: int) -> int:
+        return self.damage[index]
+
+class AliveInArmor(Alive):
+    armorType: int
+    armor: int
+
+    def __init__(self, armorType: int, armor: int, maxValue: int, value: int = None) -> None:
+        super().__init__(maxValue, value)
+        self.armorType = armorType
+        self.armor = armor
+
+    def gainDamage(self, damage: Damage) -> bool:
+        return super().gainDamage(damage[self.armorType] * (100 - self.armor) // 100)
 
 
 # for money, resources and so on
@@ -95,13 +117,13 @@ class GenericObject(HasTexture):
     def draw(self, window: Surface): 
         pass
 
-class GenericAliveObject(GenericObject, Alive):
+class GenericAliveObject(GenericObject, AliveInArmor):
     
     velocity: DoubleNumber[int, int]
 
-    def __init__(self, texture: Texture, hp: int) -> None:
+    def __init__(self, texture: Texture, hp: int, armorType: int, armor: int) -> None:
         GenericObject().__init__(texture)
-        Alive().__init__(hp)
+        AliveInArmor().__init__(armorType, armor, hp)
 
 class GenericMap:
     size: DoubleNumber[int, int]
