@@ -1,9 +1,10 @@
 import pygame
-from .menu import *
+from engine import *
 
-display: pygame.Surface = None
+display: pygame.Surface | None = None
 
 def draw():
+    assert type(display) == pygame.Surface
     display.fill((0, 0, 0))
     draw_all(display)
     pygame.display.flip()

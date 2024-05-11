@@ -1,8 +1,8 @@
 # Use only if everything is bad.
 class CriticalError(Exception):
-    message: str
+    message: str | None
     
-    def __init__(self, message=None):
+    def __init__(self, message: str | None = None):
         self.message = message
     
     def __str__(self):
@@ -12,10 +12,10 @@ class CriticalError(Exception):
 
 # May be useless(?)
 class Warning(Exception):
-    message: str
-    cause: Exception
+    message: str | None
+    cause: Exception | None
     
-    def __init__(self, message=None, cause: Exception=None):
+    def __init__(self, message: str | None = None, cause: Exception | None = None):
         self.cause = cause
         self.message = message
         

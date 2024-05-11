@@ -1,6 +1,6 @@
 from .generic import AliveInArmor, Damage, GenericAliveObject
 from .textures import *
-from .util import *
+from .engine.util import *
 from .tile import Tile
 from .Map import Map
 
@@ -11,7 +11,7 @@ class UnitType:
     hp: AliveInArmor
     damage: Damage
 
-    def __init__(self, texture: Texture, size: DoubleNumber[int], speed: float, hp: AliveInArmor, damage: tuple[int, int, int]) -> None:
+    def __init__(self, texture: Texture, size: DoubleNumber[int], speed: float, hp: AliveInArmor, damage: Damage) -> None:
         self.texture = texture
         self.size = size
         self.speed = speed
@@ -44,9 +44,9 @@ class Unit(GenericAliveObject):
         # да здравствует лапша-код!
         # талим, будет время перепеши нормальный алгоритм поиска пути
         #TODO for talim and bfs for path finding.
-        opened: list[list[Tile, float, float, int]] = []
-        closed: list[list[Tile, float, float, int]] = []
-        def isIn(pos: DoubleNumber[int], smth: list[list[Tile, float, float, int]]) -> tuple[bool, list[Tile, float, float, int]]:
+        opened: list[tuple[Tile, float, float, int]] = []
+        closed: list[tuple[Tile, float, float, int]] = []
+        def isIn(pos: DoubleNumber[int], smth: list[tuple[Tile, float, float, int]]) -> tuple[bool, tuple[Tile, float, float, int] | None]:
             for l in smth:
                 if l[0].pos == pos:
                     return (True, l)
@@ -69,12 +69,12 @@ class Unit(GenericAliveObject):
                 if map.get(relate).isTaken or isIn(relate, closed)[0]:
                     continue
                 b, l = isIn(relate, opened)
+                assert type(l) == tuple[Tile, float, float, int]
                 newG = current[1] + current[0].pos.distanceLooped(relate, map.size)*map.get(relate).landscape.passability
                 if not b :
-                    opened.append([map.get(relate), newG, endPoint.pos.distanceLooped(relate, map.size), len(closed)-1])
+                    opened.append((map.get(relate), newG, endPoint.pos.distanceLooped(relate, map.size), len(closed)-1))
                 elif l[1] > newG:
-                    l[1] = newG
-                    l[3] = len(closed)-1
+                    l = (l[0], newG, l[2], len(closed) - 1)
         self.path = []
         current = closed[-1]
         while True:

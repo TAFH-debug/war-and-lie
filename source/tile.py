@@ -1,5 +1,5 @@
 from .generic import GenericObject
-from .util import DoubleNumber
+from .engine.util import DoubleNumber
 from .textures import *
 
 class Landscape:

@@ -1,4 +1,4 @@
-from source.util import DoubleNumber
+from source.engine.util import DoubleNumber
 from .generic import GenericMap
 from .tile import *
 

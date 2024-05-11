@@ -2,7 +2,7 @@ import pygame
 
 
 class Clicked:
-    def __init__(self, color: tuple[int, int, int], border: "Border"=None):
+    def __init__(self, color: tuple[int, int, int], border: "Border | None" =None):
         self.color = color
         self.border = border
     
@@ -24,9 +24,9 @@ class Border:
 class Text:
 
     def __init__(self, text: str, 
-                 font: pygame.font.Font = None, 
+                 font: pygame.font.Font | None = None, 
                  color: tuple[int, int, int] = (0, 0, 0),
-                 background_color: tuple[int, int, int] = None):
+                 background_color: tuple[int, int, int] | None = None):
         font = font or pygame.font.SysFont("Arial", 20)
         self.text = text
         self.font = font
@@ -63,8 +63,8 @@ class RawWidget:
 class Widget(RawWidget):
     
     def __init__(self, x: int, y: int, width: int, height: int, 
-                 clicked: Clicked=None, color=None, border: Border=None,
-                 text: Text=None):
+                 clicked: Clicked | None=None, color=None, border: Border | None=None,
+                 text: Text | None=None):
         super().__init__(x, y, width, height)        
         self.text = text
         self.border = border
@@ -113,7 +113,7 @@ class Label(Widget):
     Shorthand name of widget that is used only as text.
     """
     
-    def __init__(self, x, y, text: Text=None):
+    def __init__(self, x, y, text: Text | None=None):
         self.text = text or Text.get_default()
         width, height = self.text.render().get_size()
 
@@ -129,8 +129,8 @@ class Label(Widget):
 class Button(Widget):
     
     def __init__(self, x: int, y: int, width: int, height: int, 
-                 clicked: Clicked=None, color=(255, 0, 0), border: Border=None, cmd=lambda: (), 
-                 text: Text=None, data=None):
+                 clicked: Clicked | None=None, color=(255, 0, 0), border: Border | None=None, cmd=lambda: (), 
+                 text: Text | None=None, data=None):
         
         Widget.__init__(self, x, y, width, height, clicked, color, border, text)
         self.cmd = cmd

@@ -3,3 +3,4 @@ venv/
 deleteme.py
 innerTest.py
 test*.py
+/.vscode

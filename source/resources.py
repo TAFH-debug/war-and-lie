@@ -1,6 +1,6 @@
 import random
 from .generic import CountAble, GenericObject
-from .util import DoubleNumber
+from .engine.util import DoubleNumber
 from .textures import Texture
 
 # Цвета
@@ -19,11 +19,11 @@ class Resource(CountAble):
     income: int
 
     def __init__(self, name: str, color: tuple[int, int, int], initial_amount: int, income: int) -> None:
-        CountAble.__init__(initial_amount, income)
+        CountAble.__init__(self, initial_amount, income)
         self.name = name
         self.color = color
 
-    def increase(self, amount: int = None) -> None:
+    def increase(self, amount: int | None = None) -> None:
         if amount == None:
             self.change()
         else:
@@ -39,7 +39,7 @@ class ResourceSource(GenericObject):
     production_rate: int
 
     def __init__(self, name: str, color: tuple[int, int, int], pos: DoubleNumber[int], production_rate: int, texture: Texture) -> None:
-        GenericObject().__init__(texture)
+        GenericObject.__init__(self, texture)
         self.name = name
         self.color = color
         self.pos = pos
@@ -63,7 +63,7 @@ class Cost:
     def fit(self, resources: list[Resource]) -> bool:
         for cost in self.costs:
             for res in resources:
-                if cost.name == res.name and cost() > res():
+                if cost.name == res.name and cost.value > res.value:
                     return False
         return True
     
@@ -79,10 +79,10 @@ class Cost:
             
 # Класс для покупки
 class Services:
-    services: map[str: Cost]
+    services: dict[str, Cost]
 
     def __init__(self) -> None:
-        self.services: map[str: Cost] = {}#cписок доступных покупок
+        self.services: dict[str, Cost] = {} # список доступных покупок
 
     def add_service(self, name: str, cost: Cost) -> None:
         self.services[name] = cost
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     # Example услуг
     services.add_service("Healing", 20)
-    services.add_service("Upgrade", 50) 
+    services.add_service("Upgrade", 50)
 
     # Создание ресурсов
     gold = Resource("Gold", GOLD_COLOR, 100, 0)

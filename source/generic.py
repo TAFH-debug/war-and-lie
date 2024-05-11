@@ -1,13 +1,13 @@
 from pygame import Surface
 import pygame
 from .textures import Texture
-from .util import *
+from .engine.util import *
 from typing import Iterable
 
 # Needed for hp (or other things that have max value and are positive only)
 class Alive:
     
-    def __init__(self, maxValue: int, value: int = None):
+    def __init__(self, maxValue: int, value: int | None = None):
         self.value: int = value or maxValue
         self.maxValue: int = maxValue
         
@@ -44,7 +44,7 @@ class AliveInArmor(Alive):
     armorType: int
     armor: int
 
-    def __init__(self, armorType: int, armor: int, maxValue: int, value: int = None) -> None:
+    def __init__(self, armorType: int, armor: int, maxValue: int, value: int | None = None) -> None:
         super().__init__(maxValue, value)
         self.armorType = armorType
         self.armor = armor
@@ -55,11 +55,11 @@ class AliveInArmor(Alive):
 
 # for money, resources and so on
 class CountAble: 
-    def __init__(self, value: float, income: float):
+    def __init__(self, value: int, income: int):
         self.value = value
         self.income = income
     # changes value. change can be negative also
-    def change(self, value: float = None): 
+    def change(self, value: int | None = None): 
         if value == None: 
             self.value += self.income
         else:
@@ -80,7 +80,7 @@ class HasTexture:
         self.current = (self.current + 1) % self.frames
         
     # gives current frame's positions and size
-    def getFrameCoords(self, curr: int = None) -> tuple[int, int, int, int]:
+    def getFrameCoords(self, curr: int | None = None) -> tuple[int, int, int, int]:
         if curr == None: curr = self.current 
         return (self.size.x * self.current, 0, self.size.x, self.size.y)
     
