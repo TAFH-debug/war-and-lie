@@ -74,7 +74,7 @@ class Unit(GenericAliveObject):
                 if not b :
                     opened.append((map.get(relate), newG, endPoint.pos.distanceLooped(relate, map.size), len(closed)-1))
                 elif l[1] > newG:
-                    l = (l[0], newG, l[2], len(closed) - 1)
+                    opened[opened.index(l)] = (l[0], newG, l[2], len(closed) - 1)
         self.path = []
         current = closed[-1]
         while True:

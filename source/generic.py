@@ -3,6 +3,7 @@ import pygame
 from .textures import Texture
 from .engine.util import *
 from typing import Iterable
+from math import cos, sin
 
 # Needed for hp (or other things that have max value and are positive only)
 class Alive:
@@ -73,7 +74,9 @@ class HasTexture:
         self.surface: Surface = texture.surface
         self.frames: int = texture.frames
         self.current: int = 0
-        self.size = DoubleNumber(texture.width//self.frames, texture.height)
+        self.fullAnimTime: int = texture.fullAnimTime
+        self.AnimTimer: int = 0
+        self.textureSize = DoubleNumber(texture.width, texture.height)
         
     # Counts frames and borders them by variable "frames"
     def nextFrame(self) -> None: 
@@ -82,12 +85,31 @@ class HasTexture:
     # gives current frame's positions and size
     def getFrameCoords(self, curr: int | None = None) -> tuple[int, int, int, int]:
         if curr == None: curr = self.current 
-        return (self.size.x * self.current, 0, self.size.x, self.size.y)
+        return (self.textureSize.x * self.current, 0, self.textureSize.x, self.textureSize.y)
     
+    def iteration(self) -> None:
+        self.AnimTimer += 1
+        if self.AnimTimer == self.fullAnimTime:
+            self.AnimTimer = 0
+            self.nextFrame()
+
     # blits texture on display
     # TODO texture also should be able to rotated and scaled
-    def blit(self, display: Surface, cords: tuple[int, int]) -> None: 
-        self.surface.blit(display, cords, self.getFrameCoords())
+    def blit(self, display: Surface, cords: DoubleNumber[int], angle: Angle = Angle(0), scale: float = 1) -> None: 
+        blitImage = Surface((self.textureSize.x, self.textureSize.y), pygame.SRCALPHA, 32)
+        blitImage = blitImage.convert_alpha()
+        blitImage.blit(self.surface, (0, 0), self.getFrameCoords())
+        nx = cords.x
+        ny = cords.y
+        if angle.get() != 0:
+            blitImage = pygame.transform.rotate(blitImage, angle.get(True))
+            nx -= int(self.textureSize.x * (cos(angle.get() % (pi / 2)) + sin(angle.get() % (pi / 2)) - 1) / 2)
+            ny -= int(self.textureSize.y * (cos(angle.get() % (pi / 2)) + sin(angle.get() % (pi / 2)) - 1) / 2)
+        if scale != 1:
+            blitImage = pygame.transform.scale_by(blitImage, scale)
+            nx //= scale
+            ny //= scale
+        display.blit(blitImage, (nx, ny))
 
 # generic class for all objects that has texture and position
 class GenericObject(HasTexture):
