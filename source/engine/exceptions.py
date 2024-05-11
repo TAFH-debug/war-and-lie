@@ -25,3 +25,8 @@ class Warning(Exception):
         if self.cause: s += f", Cause: {self.cause}"
         return s
     
+class NoComponentError(Exception):
+    
+    def __init__(self, component):
+        pass
+    

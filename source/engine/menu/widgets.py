@@ -2,7 +2,7 @@ import pygame
 
 
 class Clicked:
-    def __init__(self, color: tuple[int, int, int], border: "Border | None" =None):
+    def __init__(self, color: tuple[int, int, int], border: "Border | None" = None):
         self.color = color
         self.border = border
     

@@ -1,17 +1,18 @@
+from tokenize import Double
 from .generic import AliveInArmor, Damage, GenericAliveObject
 from .textures import *
-from .engine.util import *
+from .engine.vmath import *
 from .tile import Tile
 from .Map import Map
 
 class UnitType:
     texture: Texture
-    size: DoubleNumber[int]
+    size: DoubleNumber
     speed: float
     hp: AliveInArmor
     damage: Damage
 
-    def __init__(self, texture: Texture, size: DoubleNumber[int], speed: float, hp: AliveInArmor, damage: Damage) -> None:
+    def __init__(self, texture: Texture, size: DoubleNumber, speed: float, hp: AliveInArmor, damage: Damage) -> None:
         self.texture = texture
         self.size = size
         self.speed = speed
@@ -29,7 +30,7 @@ class Unit(GenericAliveObject):
     speed: float
     damage: Damage
 
-    def __init__(self, unitType: UnitType, pos: DoubleNumber[int], direction: Angle) -> None:
+    def __init__(self, unitType: UnitType, pos: Vector2d, direction: Angle) -> None:
         super().__init__(unitType.texture, unitType.hp(), unitType.hp.armorType, unitType.hp.armor)
         self.pos = pos
         self.direction = direction
@@ -46,12 +47,12 @@ class Unit(GenericAliveObject):
         #TODO for talim and bfs for path finding.
         opened: list[tuple[Tile, float, float, int]] = []
         closed: list[tuple[Tile, float, float, int]] = []
-        def isIn(pos: DoubleNumber[int], smth: list[tuple[Tile, float, float, int]]) -> tuple[bool, tuple[Tile, float, float, int] | None]:
+        def isIn(pos: Vector2d, smth: list[tuple[Tile, float, float, int]]) -> tuple[bool, tuple[Tile, float, float, int] | None]:
             for l in smth:
                 if l[0].pos == pos:
                     return (True, l)
             return (False, None)
-        opened.append((map.get(self.pos), 0, 0, -1))
+        opened.append((map.get(DoubleNumber(int(self.pos.x), int(self.pos.y))), 0, 0, -1))
         while True:
             Min = opened[0][1]+opened[0][2]
             currInd = 0
@@ -65,14 +66,14 @@ class Unit(GenericAliveObject):
             closed.append(current)
             if current[0] == endPoint:
                 break
-            for relate in current[0].getRelatedCords(map.size):
-                if map.get(relate).isTaken or isIn(relate, closed)[0]:
+            for relate in current[0].getRelatedCords(map.size.to_vec()):
+                if map.get(DoubleNumber(int(relate.x), int(relate.y))).isTaken or isIn(relate, closed)[0]:
                     continue
                 b, l = isIn(relate, opened)
                 assert type(l) == tuple[Tile, float, float, int]
-                newG = current[1] + current[0].pos.distanceLooped(relate, map.size)*map.get(relate).landscape.passability
+                newG = current[1] + current[0].pos.distanceLooped(relate, map.size.to_vec())*map.get(DoubleNumber(int(relate.x), int(relate.y))).landscape.passability
                 if not b :
-                    opened.append((map.get(relate), newG, endPoint.pos.distanceLooped(relate, map.size), len(closed)-1))
+                    opened.append((map.get(DoubleNumber(int(relate.x), int(relate.y))), newG, endPoint.pos.distanceLooped(relate, map.size.to_vec()), len(closed)-1))
                 elif l[1] > newG:
                     opened[opened.index(l)] = (l[0], newG, l[2], len(closed) - 1)
         self.path = []

@@ -1,5 +1,5 @@
 from .generic import GenericObject
-from .engine.util import DoubleNumber
+from .engine.vmath import DoubleNumber, Vector2d
 from .textures import *
 
 class Landscape:
@@ -23,7 +23,7 @@ class Tile(GenericObject):
     height: int # TODO in another version height have to be used
     isTaken: bool # if smth\smbd stands on this tile
 
-    def __init__(self, pos: DoubleNumber[int], landscape: Landscape) -> None:
+    def __init__(self, pos: Vector2d, landscape: Landscape) -> None:
         super().__init__(landscape.texture)
         self.pos = pos
         self.landscape = landscape

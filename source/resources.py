@@ -1,6 +1,6 @@
 import random
 from .generic import CountAble, GenericObject
-from .engine.util import DoubleNumber
+from .engine.vmath import DoubleNumber
 from .textures import Texture
 
 # Цвета

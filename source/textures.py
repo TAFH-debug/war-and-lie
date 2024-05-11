@@ -1,12 +1,12 @@
 import pygame
 from pygame import Surface
-from source.engine.util import DoubleNumber
+from source.engine.vmath import DoubleNumber
 
 SPRITE_PATH = "./sprites"
 
 class Texture:
     
-    def __init__(self, surface: Surface, size: DoubleNumber[int], frames: int = 1, fullAnimTimeInTicks: int = 25):
+    def __init__(self, surface: Surface, size: DoubleNumber, frames: int = 1, fullAnimTimeInTicks: int = 25):
         self.surface: Surface = surface
         self.frames: int = frames
         self.current: int = 0

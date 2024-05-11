@@ -3,13 +3,13 @@ class Scene:
     def __init__(self):
         pass
     
-    def init():
+    def init(self):
         pass
     
-    def draw():
+    def draw(self, window):
         pass
     
-    def update():
+    def update(self, events):
         pass
     
     

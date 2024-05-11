@@ -1,7 +1,7 @@
 from pygame import Surface
 import pygame
 from .textures import Texture
-from .engine.util import *
+from .engine.vmath import *
 from typing import Iterable
 from math import cos, sin
 
@@ -84,7 +84,8 @@ class HasTexture:
         
     # gives current frame's positions and size
     def getFrameCoords(self, curr: int | None = None) -> tuple[int, int, int, int]:
-        if curr == None: curr = self.current 
+        if curr == None:
+            curr = self.current 
         return (self.textureSize.x * self.current, 0, self.textureSize.x, self.textureSize.y)
     
     def iteration(self) -> None:
@@ -95,7 +96,7 @@ class HasTexture:
 
     # blits texture on display
     # TODO texture also should be able to rotated and scaled
-    def blit(self, display: Surface, cords: DoubleNumber[int], angle: Angle = Angle(0), scale: float = 1) -> None: 
+    def blit(self, display: Surface, cords: DoubleNumber, angle: Angle = Angle(0), scale: float = 1) -> None: 
         blitImage = Surface((self.textureSize.x, self.textureSize.y), pygame.SRCALPHA, 32)
         blitImage = blitImage.convert_alpha()
         blitImage.blit(self.surface, (0, 0), self.getFrameCoords())
@@ -113,23 +114,23 @@ class HasTexture:
 
 # generic class for all objects that has texture and position
 class GenericObject(HasTexture):
-    pos: DoubleNumber[int]
-    size: DoubleNumber[int]
+    pos: Vector2d
+    size: DoubleNumber
     direction: Angle
     
     def __init__(self, texture: Texture) -> None:
         super().__init__(texture)
     
-    def getRelatedCords(self, size: DoubleNumber[int]) -> list[DoubleNumber[int]]:
+    def getRelatedCords(self, size: Vector2d) -> list[Vector2d]:
         delta = [
-            DoubleNumber(-1, -1),
-            DoubleNumber(0, -1),
-            DoubleNumber(1, -1),
-            DoubleNumber(1, 0),
-            DoubleNumber(1, 1),
-            DoubleNumber(0, 1),
-            DoubleNumber(-1, 1),
-            DoubleNumber(-1, 0)
+            Vector2d(-1, -1),
+            Vector2d(0, -1),
+            Vector2d(1, -1),
+            Vector2d(1, 0),
+            Vector2d(1, 1),
+            Vector2d(0, 1),
+            Vector2d(-1, 1),
+            Vector2d(-1, 0)
         ]
         result = []
         for d in range(8):
@@ -142,23 +143,19 @@ class GenericObject(HasTexture):
     def draw(self, window: Surface): 
         pass
 
-class GenericAliveObject(GenericObject):
+class GenericAliveObject(GenericObject, AliveInArmor):
     
-    velocity: DoubleNumber[int]
+    velocity: Vector2d
 
     def __init__(self, texture: Texture, hp: int, armorType: int, armor: int) -> None:
-        super().__init__(texture) 
-        self.hp = AliveInArmor(armorType, armor, hp)
-        """
-        я потратил на это решение 2 часа чтения
-        и придя к выводу что двойное наследование в питоне 
-        нормально никогда не реализовать сделал такие вот костыли
-        """
+        GenericObject.__init__(self, texture) 
+        AliveInArmor.__init__(self, armorType, armor, hp) 
+        
 class GenericMap[T]:
-    size: DoubleNumber[int]
+    size: DoubleNumber
     Map: list[list[T]]
 
-    def __init__(self, size: DoubleNumber[int]) -> None:
+    def __init__(self, size: DoubleNumber) -> None:
         self.size = size
 
     def __getitem__(self, index: int) -> list[T]:

@@ -2,4 +2,4 @@ from .menu import *
 from .scene_manager import *
 from .camera import *
 from .config import *
-from .util import *
+from .vmath import *
