@@ -1,16 +1,21 @@
-import jsonpython
 from typing import TypeVar
 
+import jsonpython
+
 T = TypeVar("T")
+
 
 def config_class(filename: str):
     def wrapper(cls: T) -> T:
         def new_constructor(self: T) -> None:
-            obj = jsonpython.from_file(cls, filename) # type: ignore
+            obj = jsonpython.from_file(cls, filename)  # type: ignore
             self.__dict__.update(obj.__dict__)
-        cls.__init__ = new_constructor # type: ignore
+
+        cls.__init__ = new_constructor  # type: ignore
         return cls
+
     return wrapper
+
 
 """
 Example config class.
@@ -31,4 +36,3 @@ config = Config()
 print(config.name) # sss
 
 """
-        

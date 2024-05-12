@@ -1,15 +1,16 @@
 from .generic import GenericObject
-from .engine.vmath import DoubleNumber, Vector2d
 from .textures import *
+
 
 class Landscape:
     # TODO some other parameters are required
-    passability: int # multiply the time needed for unit to pass this tile by passability
+    passability: int  # multiply the time needed for unit to pass this tile by passability
     texture: Texture
 
     def __init__(self, passability: int, texture: Texture) -> None:
         self.passability = passability
         self.texture = texture
+
 
 class Landscapes():
     """
@@ -18,17 +19,18 @@ class Landscapes():
     # example landscape
     water = Landscape(2, Textures.water)
 
+
 class Tile(GenericObject):
     landscape: Landscape
-    height: int # TODO in another version height have to be used
-    isTaken: bool # if smth\smbd stands on this tile
+    height: int  # TODO in another version height have to be used
+    isTaken: bool  # if smth\smbd stands on this tile
 
     def __init__(self, pos: Vector2d, landscape: Landscape) -> None:
         super().__init__(landscape.texture)
         self.pos = pos
         self.landscape = landscape
         self.isTaken = False
-    
+
     def __eq__(self, other: "Tile") -> bool:
         return (self.pos == other.pos)
 

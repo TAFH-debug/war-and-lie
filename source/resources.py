@@ -1,6 +1,6 @@
 import random
+
 from .generic import CountAble, GenericObject
-from .engine.vmath import DoubleNumber
 from .textures import Texture
 
 # Цвета
@@ -32,13 +32,15 @@ class Resource(CountAble):
     def decrease(self, amount: int) -> None:
         self.change(max(self.value - amount, 0))
 
+
 # Класс для шахт и деревьев
 class ResourceSource(GenericObject):
     name: str
     color: tuple[int, int, int]
     production_rate: int
 
-    def __init__(self, name: str, color: tuple[int, int, int], pos: DoubleNumber[int], production_rate: int, texture: Texture) -> None:
+    def __init__(self, name: str, color: tuple[int, int, int], pos: DoubleNumber[int], production_rate: int,
+                 texture: Texture) -> None:
         GenericObject.__init__(self, texture)
         self.name = name
         self.color = color
@@ -54,19 +56,20 @@ class ResourceSource(GenericObject):
             return True
         return False
 
+
 class Cost:
     costs: list[Resource]
 
     def __init__(self, costs: list[Resource]) -> None:
         self.costs = costs
-    
+
     def fit(self, resources: list[Resource]) -> bool:
         for cost in self.costs:
             for res in resources:
                 if cost.name == res.name and cost.value > res.value:
                     return False
         return True
-    
+
     def buy(self, resources: list[Resource]) -> bool:
         if self.fit(resources):
             for cost in self.costs:
@@ -76,13 +79,14 @@ class Cost:
                         continue
             return True
         return False
-            
+
+
 # Класс для покупки
 class Services:
     services: dict[str, Cost]
 
     def __init__(self) -> None:
-        self.services: dict[str, Cost] = {} # список доступных покупок
+        self.services: dict[str, Cost] = {}  # список доступных покупок
 
     def add_service(self, name: str, cost: Cost) -> None:
         self.services[name] = cost
@@ -93,6 +97,7 @@ class Services:
             return cost.buy(resources)
         else:
             return False
+
 
 if __name__ == "__main__":
     WIDTH = HEIGHT = 150
@@ -119,9 +124,9 @@ if __name__ == "__main__":
         wood_forests.append(wood_forest)
 
 # Exampe отрисовки и т.д.
-#import pygame
-#pygame.init()
-#while True:
+# import pygame
+# pygame.init()
+# while True:
 #    screen.fill(WHITE)
 #    if gold_mine.update():
 #        gold.increase(1)
