@@ -5,30 +5,26 @@ from .textures import *
 from .tile import Tile
 
 
-class Buldings:
+class Buildings:
     texture: Texture
     size: Vector2d
     hp: AliveInArmor
 
-    def __init__(self, texture: Texture, size: Vector2d, speed: float, hp: AliveInArmor) -> None:
+    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor) -> None:
         self.texture = texture
         self.size = size
-        self.speed = speed
         self.hp = hp
-        self.damage = damage
 
-class Defender(Buldings): "Здания типа 'Защита' по типу башен и т.д."
+class Defender(Buildings):
     damage:Damage
     def __init__(self, damage: Damage):
-        self.damage = damage;
+        self.damage = damage
 
-class Industrial(Buldings): "Здания типа 'Производство' по типу завода и т.д."
+class Industrial(Buildings): 
     pass
 
 class BuldingsTypes():
-    """
-    Here must be all Buldings types in the game
-    """
+    pass
 
 class Building(GenericAliveObject):
 
