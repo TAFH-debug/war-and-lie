@@ -1,27 +1,31 @@
 import random
-
+from source.engine.vmath import *
 from .generic import CountAble, GenericObject
 from .textures import Texture
 
-# Цвета
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GOLD_COLOR = (255, 215, 0)  # Цвет для золота
-IRON_COLOR = (169, 169, 169)  # Цвет для железа
-WOOD_COLOR = (34, 139, 34)  # цвет для деревьев
+class ResourceType:
+    name: str
+    index: int
+    # index to access to resources easily. for example: wood is 0 iron is 1 stone is 2
+    # and in c++ or java we could make it with static, but python...
+    # soon there will be something about generation on map
 
+    def __init__(self, name: str, index: int) -> None:
+        self.name = name
+        self.index = index
 
 # Основной класс для ресурсов
 class Resource(CountAble):
     name: str
-    color: tuple[int, int, int]
+    index: int
     initial_amount: int
     income: int
 
-    def __init__(self, name: str, color: tuple[int, int, int], initial_amount: int, income: int) -> None:
+    def __init__(self,resourceType: ResourceType, initial_amount: int, income: int) -> None:
         CountAble.__init__(self, initial_amount, income)
-        self.name = name
-        self.color = color
+        self.name = resourceType.name
+        self.index = resourceType.index
+
 
     def increase(self, amount: int | None = None) -> None:
         if amount == None:
@@ -33,13 +37,20 @@ class Resource(CountAble):
         self.change(max(self.value - amount, 0))
 
 
+class ResourceTypes:
+    """
+    Here ought to be all resources in the game
+    """
+
+    wood = ResourceType("Wood", 0)
+    
 # Класс для шахт и деревьев
 class ResourceSource(GenericObject):
     name: str
     color: tuple[int, int, int]
     production_rate: int
 
-    def __init__(self, name: str, color: tuple[int, int, int], pos: DoubleNumber[int], production_rate: int,
+    def __init__(self, name: str, color: tuple[int, int, int], pos: Vector2d, production_rate: int,
                  texture: Texture) -> None:
         GenericObject.__init__(self, texture)
         self.name = name
@@ -58,27 +69,24 @@ class ResourceSource(GenericObject):
 
 
 class Cost:
-    costs: list[Resource]
+    costs: dict[ResourceType: int]
 
-    def __init__(self, costs: list[Resource]) -> None:
+    def __init__(self, costs: dict[ResourceType: int]) -> None:
         self.costs = costs
 
-    def fit(self, resources: list[Resource]) -> bool:
-        for cost in self.costs:
-            for res in resources:
-                if cost.name == res.name and cost.value > res.value:
-                    return False
+    def doesFit(self, resources: list[Resource]) -> bool:
+        for resource in resources:
+            if self.costs[resource] > resource.value:
+                return False
         return True
 
     def buy(self, resources: list[Resource]) -> bool:
-        if self.fit(resources):
-            for cost in self.costs:
-                for res in resources:
-                    if cost.name == res.name:
-                        res.decrease(cost.value)
-                        continue
-            return True
-        return False
+        for resource in resources:
+            if self.costs[resource] < resource.value:
+                resource.decrease(self.costs[resource])
+            else:
+                return False
+        return True
 
 
 # Класс для покупки
@@ -100,6 +108,14 @@ class Services:
 
 
 if __name__ == "__main__":
+        
+    # Цвета
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+    GOLD_COLOR = (255, 215, 0)  # Цвет для золота
+    IRON_COLOR = (169, 169, 169)  # Цвет для железа
+    WOOD_COLOR = (34, 139, 34)  # цвет для деревьев
+
     WIDTH = HEIGHT = 150
     services = Services()
 

@@ -3,6 +3,7 @@ from .engine.vmath import *
 from .generic import AliveInArmor, Damage, GenericAliveObject
 from .textures import *
 from .tile import Tile
+from .resources import Cost, ResourceTypes
 
 
 class UnitType:
@@ -11,13 +12,17 @@ class UnitType:
     speed: float
     hp: AliveInArmor
     damage: Damage
+    cost: Cost
+    productionTime: int
 
-    def __init__(self, texture: Texture, size: Vector2d, speed: float, hp: AliveInArmor, damage: Damage) -> None:
+    def __init__(self, texture: Texture, size: Vector2d, speed: float, hp: AliveInArmor, damage: Damage, cost: Cost, productionTime: int) -> None:
         self.texture = texture
         self.size = size
         self.speed = speed
         self.hp = hp
         self.damage = damage
+        self.cost = cost
+        self.productionTime = productionTime
 
 
 class UnitTypes():
@@ -25,7 +30,7 @@ class UnitTypes():
     Here must be all unit types in the game
     """
 
-    ship = UnitType(Textures.ship, Vector2d(2, 2), 20, AliveInArmor(2, 10, 100), Damage((10, 23, 20)))
+    ship = UnitType(Textures.ship, Vector2d(2, 2), 20, AliveInArmor(2, 10, 100), Damage((10, 23, 20)), Cost({ResourceTypes.wood: 3}), 10)
 
 
 class Unit(GenericAliveObject):

@@ -25,3 +25,4 @@ class Textures():
     # Example texture
     ship = Texture(pygame.image.load(SPRITE_PATH + "/ship.png"), Vector2d(64, 64), 4)
     water = Texture(pygame.image.load(SPRITE_PATH + "/water.png"), Vector2d(64, 64), 1)
+    shipYard = Texture(pygame.image.load(SPRITE_PATH + "/shipYard.png"), Vector2d(64, 64), 1)
