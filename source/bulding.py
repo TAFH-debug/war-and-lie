@@ -7,7 +7,7 @@ from .unit import UnitType, UnitTypes
 from .resources import Cost, ResourceTypes
 
 class BuildingType:
-    
+
     texture: Texture
     size: Vector2d
     hp: AliveInArmor
@@ -23,7 +23,7 @@ class BuildingType:
 
 class Defender(BuildingType):
     damage: Damage
-    
+
     def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, damage: int) -> None:
         super().__init__(texture, size, hp, cost, constructionTime)
         self.damage = damage
@@ -43,15 +43,24 @@ class Industrial(BuildingType):
             self.trainQueue.append(unitType)
         else:
             raise ValueError(f"{unitType} is not in {self.produces}")
-    
+
     def removeFromQueue(self) -> None:
         if len(self.trainQueue) > 0:
             self.trainQueue.pop(-1)
         else:
             raise ValueError(f"produce queue is empty")
-    
+
     def train(self) -> None:
-        pass # TODO where unit shold appear? how it have to be done?
+        if len(self.trainQueue) == 0:
+            raise ValueError("No units in queue to train")
+        
+        unitType = self.trainQueue[0]
+        self.spawn_unit(unitType)
+
+    def spawn_unit(self, unitType: UnitType) -> None:
+        spawn_position = Vector2d(self.size.x + 1, self.size.y + 1)
+        new_unit = unitType(spawn_position) 
+        #тут должно быть добавления юнита в игру
 
     def iteration(self) -> None:
         if len(self.trainQueue) > 0:
@@ -98,4 +107,3 @@ class ConstructionSite:
         else:
             # Construction still in progress
             return None
-
