@@ -38,12 +38,20 @@ class Engine:
             logging.critical(e.with_traceback(None))
             exit(1)
 
+    def pygameEventProcessing(self, event):
+        if event.type == pg.QUIT:
+            logging.info("Quitting")
+            exit()
+
     def cycle(self):
         while True:
+            for event in pg.event.get():
+                self.pygameEventProcessing(event)
+            
             for i in GameObject.objects:
                 i.update()
 
             for i in GameObject.objects:
-                i.draw()
+                i.draw(self.display)
 
             pg.display.flip()

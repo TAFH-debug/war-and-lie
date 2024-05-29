@@ -1,3 +1,5 @@
+from source.engine.game_object import Prefab
+
 class Scene:
     name: str
     prefabs: list[Prefab]

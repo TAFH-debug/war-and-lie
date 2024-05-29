@@ -2,7 +2,7 @@ import logging
 
 import pygame
 
-from game import game_cycle, init, main_menu
+from .game import game_cycle, init, main_menu
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

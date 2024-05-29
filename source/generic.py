@@ -5,7 +5,7 @@ import pygame
 from pygame import Surface
 
 from .engine.vmath import *
-from .textures import Texture
+from .textures import Texture, HasTexture
 
 
 # Needed for hp (or other things that have max value and are positive only)
@@ -71,35 +71,6 @@ class CountAble:
             self.value += self.income
         else:
             self.value = value
-
-
-# General class for all textures
-class HasTexture:
-
-    def __init__(self, texture: Texture):
-        self.texture: Texture = texture
-        self.surface: Surface = texture.surface
-        self.frames: int = texture.frames
-        self.current: int = 0
-        self.fullAnimTime: int = texture.fullAnimTime
-        self.AnimTimer: int = 0
-        self.textureSize = Vector2d(texture.width, texture.height)
-
-    # Counts frames and borders them by variable "frames"
-    def nextFrame(self) -> None:
-        self.current = (self.current + 1) % self.frames
-
-    # gives current frame's positions and size
-    def getFrameCoords(self, curr: int | None = None) -> tuple[int, int, int, int]:
-        if curr == None:
-            curr = self.current
-        return ((self.textureSize.intx() * self.current), 0, self.textureSize.intx(), self.textureSize.inty())
-
-    def iteration(self) -> None:
-        self.AnimTimer += 1
-        if self.AnimTimer == self.fullAnimTime:
-            self.AnimTimer = 0
-            self.nextFrame()
 
     # blits texture on display
     # TODO texture also should be able to rotated and scaled

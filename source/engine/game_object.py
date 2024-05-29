@@ -1,6 +1,6 @@
 from typing import TypeVar
 from .vmath import Vector2d, Angle
-
+from pygame import Surface
 
 class Component:
     game_object: "GameObject"
@@ -14,7 +14,7 @@ class Component:
     def __init__(self, obj: "GameObject"):
         self.game_object = obj
 
-    def draw(self):
+    def draw(self, display: Surface):
         pass
 
     def update(self):
@@ -36,6 +36,7 @@ class Transform:
     def __init__(self, obj: "GameObject"):
         self.game_object = obj
         self.position = Vector2d(0, 0)
+        self.childs = []
 
     def translate(self, trn: Vector2d):
         self.position += trn
@@ -69,11 +70,12 @@ class GameObject:
         self.components = []
         self.active = True
         self.tag = tag
+        self.transform = Transform(self)
         GameObject.objects.append(self)
 
-    def draw(self):
+    def draw(self, display: Surface):
         for i in self.components:
-            i.draw()
+            i.draw(display)
 
     def update(self):
         for i in self.components:
@@ -83,8 +85,8 @@ class GameObject:
         for i in self.childs:
             GameObject.destroy(i)
 
-    def add_component(self, component: type[T]):
-        self.components.append(component(self))
+    def add_component(self, component: Component):
+        self.components.append(component)
 
     def get_component(self, component: type[T]) -> T:
         for i in self.components:

@@ -39,6 +39,12 @@ class Vector2d:
     def __sub__(self, other: "Vector2d") -> "Vector2d":
         return Vector2d(self.x - other.x, self.y - other.y)
 
+    def __mul__(self, other: float):
+        return Vector2d(self.x * other, self.y * other)
+
+    def __truediv__(self, other: float):
+        return Vector2d(self.x / other, self.y / other)
+
     def operation(self, other: "Vector2d", operation: Callable[[float, float], float]) -> "Vector2d":
         return Vector2d(operation(self.x, other.x), operation(self.y, other.y))
 
