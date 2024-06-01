@@ -36,6 +36,7 @@ class Transform:
     def __init__(self, obj: "GameObject"):
         self.game_object = obj
         self.position = Vector2d(0, 0)
+        self.angle = Angle()
         self.childs = []
 
     def translate(self, trn: Vector2d):
@@ -74,8 +75,12 @@ class GameObject:
         GameObject.objects.append(self)
 
     def draw(self, display: Surface):
-        for i in self.components:
-            i.draw(display)
+        for component in self.components:
+            component.draw(display)
+        if not "child" in self.__dir__():
+            return 
+        for child in self.childs:
+            child.draw(display)
 
     def update(self):
         for i in self.components:
@@ -92,7 +97,7 @@ class GameObject:
         for i in self.components:
             if isinstance(i, component):
                 return i
-        raise Exception("No such component")
+        raise Exception(f"No such component: {component}")
 
     def set_active(self, active: bool):
         self.active = active

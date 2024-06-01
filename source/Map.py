@@ -1,11 +1,22 @@
-from generic import GenericMap
-from tile import *
+from .generic import GenericMap
+from .tile import *
 
+from source.engine.game_object import GameObject
 
-class Map(GenericMap[Tile]):
+class Map(GenericMap[Tile], GameObject):
     def __init__(self, size: Vector2d) -> None:
-        super().__init__(size)
+        GenericMap.__init__(self, size)
+        GameObject.__init__(self, "Map")
 
     def initEmpty(self) -> None:
-        self.Map = [[Tile(Vector2d(x, y), Landscapes.water) for x in range(self.size.intx())] for y in
-                    range(self.size.inty())]
+        self.Map = [[
+            Tile(Vector2d(x, y), Landscapes.water) 
+            for x in range(self.size.intx())] 
+            for y in range(self.size.inty())]
+    
+    def draw(self, display: Surface) -> None:
+        for x in range(self.size.intx()):
+            for y in range(self.size.inty()):
+                self.Map[y][x].draw(display)
+
+    

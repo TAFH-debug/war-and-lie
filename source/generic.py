@@ -72,24 +72,6 @@ class CountAble:
         else:
             self.value = value
 
-    # blits texture on display
-    # TODO texture also should be able to rotated and scaled
-    def blit(self, display: Surface, cords: Vector2d, angle: Angle = Angle(0), scale: float = 1) -> None:
-        blitImage = Surface((self.textureSize.x, self.textureSize.y), pygame.SRCALPHA, 32)
-        blitImage = blitImage.convert_alpha()
-        blitImage.blit(self.surface, (0, 0), self.getFrameCoords())
-        nx = cords.x
-        ny = cords.y
-        if angle.get() != 0:
-            blitImage = pygame.transform.rotate(blitImage, angle.get(True))
-            nx -= int(self.textureSize.x * (cos(angle.get() % (pi / 2)) + sin(angle.get() % (pi / 2)) - 1) / 2)
-            ny -= int(self.textureSize.y * (cos(angle.get() % (pi / 2)) + sin(angle.get() % (pi / 2)) - 1) / 2)
-        if scale != 1:
-            blitImage = pygame.transform.scale_by(blitImage, scale)
-            nx //= scale
-            ny //= scale
-        display.blit(blitImage, (nx, ny))
-
 
 # generic class for all objects that has texture and position
 class GenericObject(HasTexture):
@@ -117,11 +99,6 @@ class GenericObject(HasTexture):
             result.append((self.pos + delta[d]).operation(size, lambda a, b: a % b))
         return result
 
-    def update(self, events: list[pygame.event.Event]):
-        pass
-
-    def draw(self, window: Surface):
-        pass
 
 
 class GenericAliveObject(GenericObject, AliveInArmor):

@@ -1,7 +1,8 @@
 import pygame
 from pygame import Surface
+from math import cos, sin, pi
 
-from source.engine.vmath import Vector2d
+from source.engine.vmath import Vector2d, Angle
 from source.engine.game_object import Component, GameObject
 
 SPRITE_PATH = "./sprites"
@@ -27,7 +28,7 @@ class HasTexture:
         self.current: int = 0
         self.fullAnimTime: int = texture.fullAnimTime
         self.AnimTimer: int = 0
-        self.textureSize = Vector2d(texture.width, texture.height)
+        self.textureSize: Vector2d = texture.size
 
     # Counts frames and borders them by variable "frames"
     def nextFrame(self) -> None:
@@ -44,15 +45,35 @@ class HasTexture:
         if self.AnimTimer == self.fullAnimTime:
             self.AnimTimer = 0
             self.nextFrame()
+    
+    def blit(self, display: Surface, cords: Vector2d, angle: Angle = Angle(0), scale: float = 1) -> None:
+        blitImage = Surface((self.textureSize.x, self.textureSize.y), pygame.SRCALPHA, 32)
+        blitImage = blitImage.convert_alpha()
+        blitImage.blit(self.surface, (0, 0), self.getFrameCoords())
+        nx = cords.x
+        ny = cords.y
+        if angle.get() != 0:
+            blitImage = pygame.transform.rotate(blitImage, angle.get(True))
+            nx -= int(self.textureSize.x * (cos(angle.get() % (pi / 2)) + sin(angle.get() % (pi / 2)) - 1) / 2)
+            ny -= int(self.textureSize.y * (cos(angle.get() % (pi / 2)) + sin(angle.get() % (pi / 2)) - 1) / 2)
+        if scale != 1:
+            blitImage = pygame.transform.scale_by(blitImage, scale)
+            nx //= scale
+            ny //= scale
+        display.blit(blitImage, (nx, ny))
 
-class TextureAsComponent(Component):
+class TextureAsComponent(Component, HasTexture):
 
     def __init__(self, obj: GameObject, texture: Texture):
         Component.__init__(self, obj)
-        self.texture = texture
+        HasTexture.__init__(self, texture)
     
     def draw(self, display: Surface):
-        display.blit(self.texture.surface, (self.game_object.transform.position - (self.texture.size / 2)).as_tuple())
+        self.blit(
+            display, 
+            (self.game_object.transform.position - (self.texture.size / 2)), 
+            self.game_object.transform.angle
+        )
 
 class Textures():
     """
@@ -63,4 +84,4 @@ class Textures():
     # Example texture
     ship = Texture(pygame.image.load(SPRITE_PATH + "/ship.png"), Vector2d(64, 64), 4)
     water = Texture(pygame.image.load(SPRITE_PATH + "/water.png"), Vector2d(64, 64), 1)
-#    shipYard = Texture(pygame.image.load(SPRITE_PATH + "/shipYard.png"), Vector2d(64, 64), 1)
+    shipYard = Texture(pygame.image.load(SPRITE_PATH + "/shipYard.png"), Vector2d(192, 192), 1)

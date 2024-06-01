@@ -2,9 +2,11 @@ from source.engine.vmath import Vector2d
 from source.textures import Texture, Vector2d
 from .engine.vmath import *
 from .generic import AliveInArmor, Damage, GenericAliveObject
-from .textures import *
+from .textures import Texture, Textures, TextureAsComponent
 from .unit import UnitType, UnitTypes
 from .resources import Cost, ResourceTypes
+
+from source.engine.game_object import GameObject
 
 class BuildingType:
 
@@ -76,14 +78,19 @@ class BuldingsTypes():
     Here have to be all buildings in the game
     """
 
-    shipYard = Industrial(Textures.shipYard, Vector2d(3, 3), 1000, Cost({ResourceTypes.wood: 20}), 100, (UnitTypes.ship))
+    shipYard = Industrial(Textures.shipYard, Vector2d(3, 3), AliveInArmor(3, 10, 100), Cost({ResourceTypes.wood: 20}), 100, (UnitTypes.ship))
 
-class Building(GenericAliveObject):
+class Building(GenericAliveObject, GameObject):
 
     def __init__(self, buildingType: BuildingType, pos: Vector2d) -> None:
-        super().__init__(buildingType.texture, buildingType.hp(), buildingType.hp.armorType, buildingType.hp.armor)
-        self.pos = pos
+        GenericAliveObject.__init__(self, buildingType.texture, buildingType.hp.value, buildingType.hp.armorType, buildingType.hp.armor)
+        self.pos = pos # position of upper-left corner
         self.size = buildingType.size
+
+        GameObject.__init__(self, "Building")
+        self.add_component(TextureAsComponent(self, buildingType.texture))
+        self.transform.translate((pos + (self.size / 2)) * 64)
+
 
     def upgrade(self):
         pass

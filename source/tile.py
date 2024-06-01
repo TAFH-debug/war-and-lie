@@ -1,6 +1,7 @@
 from .generic import GenericObject
 from .textures import *
 
+from source.engine.game_object import GameObject
 
 class Landscape:
     # TODO some other parameters are required
@@ -20,13 +21,17 @@ class Landscapes():
     water = Landscape(2, Textures.water)
 
 
-class Tile(GenericObject):
+class Tile(GameObject, GenericObject):
     landscape: Landscape
     height: int  # TODO in another version height have to be used
     isTaken: bool  # if smth\smbd stands on this tile
 
     def __init__(self, pos: Vector2d, landscape: Landscape) -> None:
-        super().__init__(landscape.texture)
+        GameObject.__init__(self, "Tile")
+        self.transform.translate(pos * 64)
+        self.add_component(TextureAsComponent(self, landscape.texture))
+
+        GenericObject.__init__(self, landscape.texture)
         self.pos = pos
         self.landscape = landscape
         self.isTaken = False
