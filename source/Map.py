@@ -1,7 +1,9 @@
+from pygame import Surface
 from .generic import GenericMap
-from .tile import *
+from .tile import Tile, Landscapes
 
 from source.engine.game_object import GameObject
+from source.engine.vmath import Vector2d
 
 class Map(GenericMap[Tile], GameObject):
     def __init__(self, size: Vector2d) -> None:

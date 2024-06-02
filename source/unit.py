@@ -47,11 +47,10 @@ class Unit(GenericAliveObject, GameObject):
         self.size = unitType.size
         self.path: list[Tile] = []
         self.current = 0
-        # TODO tile where unit stands have to be indicated as taken
 
         GameObject.__init__(self, "Unit")
         self.add_component(TextureAsComponent(self, unitType.texture))
-        self.transform.translate(pos * 64)
+        self.transform.translate((pos + Vector2d(0.5, 0.5)) * 64)
 
     def pathFinding(self, map: Map, endPoint: Tile) -> list[Tile]:  # A* algorithm
         # да здравствует лапша-код!
@@ -101,6 +100,12 @@ class Unit(GenericAliveObject, GameObject):
                 break
             current = closed[current[3]]
         return self.path
+
+    def placeOnMap(self, map: Map):
+        map.get(self.pos).isTaken = True
+
+    def takeOfMap(self, map: Map):
+        map.get(self.pos).isTaken = False
 
     def rotate(self, angularVelocity: float):
         pass

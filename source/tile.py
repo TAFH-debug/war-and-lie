@@ -28,7 +28,7 @@ class Tile(GameObject, GenericObject):
 
     def __init__(self, pos: Vector2d, landscape: Landscape) -> None:
         GameObject.__init__(self, "Tile")
-        self.transform.translate(pos * 64)
+        self.transform.translate((pos + Vector2d(0.5, 0.5)) * 64)
         self.add_component(TextureAsComponent(self, landscape.texture))
 
         GenericObject.__init__(self, landscape.texture)

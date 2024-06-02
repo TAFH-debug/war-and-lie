@@ -1,12 +1,11 @@
-from source.engine.vmath import Vector2d
-from source.textures import Texture, Vector2d
-from .engine.vmath import *
 from .generic import AliveInArmor, Damage, GenericAliveObject
 from .textures import Texture, Textures, TextureAsComponent
 from .unit import UnitType, UnitTypes
 from .resources import Cost, ResourceTypes
+from .Map import Map
 
 from source.engine.game_object import GameObject
+from source.engine.vmath import Vector2d
 
 class BuildingType:
 
@@ -14,28 +13,31 @@ class BuildingType:
     size: Vector2d
     hp: AliveInArmor
     cost: Cost
+    body: tuple[Vector2d]
     constructionTime: int
 
-    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int) -> None:
+    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, body: tuple[Vector2d] = None) -> None:
         self.texture = texture
         self.size = size
         self.hp = hp
         self.cost = cost
         self.constructionTime = constructionTime
+        self.body = body
+    
 
 class Defender(BuildingType):
     damage: Damage
 
-    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, damage: int) -> None:
-        super().__init__(texture, size, hp, cost, constructionTime)
+    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, damage: int, body: tuple[Vector2d] = None) -> None:
+        super().__init__(texture, size, hp, cost, constructionTime, body)
         self.damage = damage
 
 class Industrial(BuildingType): 
     produces: tuple[UnitType]
     trainQueue: list[UnitType]
 
-    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, produces: tuple[UnitType]) -> None:
-        super().__init__(texture, size, hp, cost, constructionTime)
+    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, produces: tuple[UnitType], body: tuple[Vector2d] = None) -> None:
+        super().__init__(texture, size, hp, cost, constructionTime, body)
         self.produces = produces
         self.timer: int = 0
         self.trainQueue: list[UnitType] = []
@@ -78,7 +80,14 @@ class BuldingsTypes():
     Here have to be all buildings in the game
     """
 
-    shipYard = Industrial(Textures.shipYard, Vector2d(3, 3), AliveInArmor(3, 10, 100), Cost({ResourceTypes.wood: 20}), 100, (UnitTypes.ship))
+    shipYard = Industrial(
+        Textures.shipYard,
+        Vector2d(3, 3),
+        AliveInArmor(3, 10, 100),
+        Cost({ResourceTypes.wood: 20}),
+        100, 
+        (UnitTypes.ship), 
+        (Vector2d(i%3, i//3) for i in (0, 1, 2, 3, 4, 6, 7, 8, 9)))
 
 class Building(GenericAliveObject, GameObject):
 
@@ -86,11 +95,29 @@ class Building(GenericAliveObject, GameObject):
         GenericAliveObject.__init__(self, buildingType.texture, buildingType.hp.value, buildingType.hp.armorType, buildingType.hp.armor)
         self.pos = pos # position of upper-left corner
         self.size = buildingType.size
+        self.buildingType = buildingType
 
         GameObject.__init__(self, "Building")
         self.add_component(TextureAsComponent(self, buildingType.texture))
         self.transform.translate((pos + (self.size / 2)) * 64)
 
+    def placeOnMap(self, map: Map):
+        if self.buildingType.body != None:
+            for vec in self.buildingType.body:
+                map.get(vec + self.pos).isTaken = True
+        else:
+            for y in range(self.size.y):
+                for x in range(self.size.x):
+                    map[y + self.pos.y][x + self.pos.x].isTaken = True
+
+    def takeOfMap(self, map: Map):
+        if self.buildingType.body != None:
+            for vec in self.buildingType.body:
+                map.get(vec + self.pos).isTaken = False
+        else:
+            for y in range(self.size.y):
+                for x in range(self.size.x):
+                    map[y + self.pos.y][x + self.pos.x].isTaken = False
 
     def upgrade(self):
         pass

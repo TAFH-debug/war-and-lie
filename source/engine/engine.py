@@ -38,7 +38,7 @@ class Engine:
             logging.critical(e.with_traceback(None))
             exit(1)
 
-    def pygameEventProcessing(self, event):
+    def pygameEventProcessing(self, event: pg.event.Event):
         if event.type == pg.QUIT:
             logging.info("Quitting")
             exit()
