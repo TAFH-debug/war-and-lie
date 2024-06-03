@@ -41,6 +41,10 @@ class Vector2d:
 
     def __mul__(self, other: float):
         return Vector2d(self.x * other, self.y * other)
+    
+    def complexMultiply(self, other: "Vector2d") -> "Vector2d":
+        # complex multiplying
+        return Vector2d(self.x * other.x - self.y * other.y, self.y * other.x + self.x * other.y)
 
     def __truediv__(self, other: float):
         return Vector2d(self.x / other, self.y / other)
@@ -94,3 +98,57 @@ class Angle:
 
     def __float__(self) -> float:
         return self.angle
+
+class Mod4:
+    def __init__(self, value: int = 0) -> None:
+        self.value = value % 4
+    
+    def __add__(self, other: "Mod4") -> "Mod4":
+        return Mod4((self.value + other.value) % 4)
+    
+    def __sub__(self, other: "Mod4") -> "Mod4":
+        return Mod4((self.value - other.value) % 4)
+
+    def __repr__(self) -> str:
+        return self.value.__repr__()
+
+    def __eq__(self, other: "Mod4") -> bool:
+        return self.other == other.other
+
+    def __ne__(self, other: "Mod4") -> bool:
+        return self.other != other.other
+
+class Direction(Mod4):
+    def __init__(self, value: int = 0) -> None:
+        super().__init__(value)
+    
+    def toAngle(self) -> Angle:
+        return Angle(self.value * pi / 2)
+
+    @staticmethod
+    def fromAngle(ang: Angle) -> "Direction":
+        return Direction((ang.get() + pi/4) // (pi/2))
+    
+    def toVector2d(self) -> Vector2d:
+        return Directions.AsVector2D[self.value]
+
+    @staticmethod
+    def fromVector2d(ang: Vector2d) -> "Direction":
+        newang = ang.complexMultiply(Vector2d(1, 1))
+        return Direction(int(newang.y < 0) * 2 + int(newang.x < 0))
+
+    def rotateVector2d(self, vec: Vector2d) -> Vector2d:
+        return vec.complexMultiply(self.toVector2d())
+    
+class Directions:
+    RIGHT = Direction(0)
+    UP = Direction(1)
+    LEFT = Direction(2)
+    DOWN = Direction(3)
+    
+    AsVector2D = (
+        Vector2d(1, 0), 
+        Vector2d(0, -1), 
+        Vector2d(-1, 0), 
+        Vector2d(0, 1)
+    )

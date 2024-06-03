@@ -1,11 +1,11 @@
 from .generic import AliveInArmor, Damage, GenericAliveObject
 from .textures import Texture, Textures, TextureAsComponent
-from .unit import UnitType, UnitTypes
+from .unit import UnitType, UnitTypes, Unit
 from .resources import Cost, ResourceTypes
 from .Map import Map
 
 from source.engine.game_object import GameObject
-from source.engine.vmath import Vector2d
+from source.engine.vmath import Vector2d, Direction
 
 class BuildingType:
 
@@ -34,16 +34,89 @@ class Defender(BuildingType):
 
 class Industrial(BuildingType): 
     produces: tuple[UnitType]
-    trainQueue: list[UnitType]
 
-    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, produces: tuple[UnitType], body: tuple[Vector2d] = None) -> None:
+    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, produces: tuple[UnitType], producePoint: Vector2d, body: tuple[Vector2d] = None) -> None:
         super().__init__(texture, size, hp, cost, constructionTime, body)
         self.produces = produces
-        self.timer: int = 0
+        self.producePoint = producePoint
+
+class BuldingsTypes():
+    """
+    Here have to be all buildings in the game
+    """
+
+    shipYard = Industrial(
+        Textures.shipYard,
+        Vector2d(3, 3),
+        AliveInArmor(3, 10, 100),
+        Cost({ResourceTypes.wood: 20}),
+        100, 
+        (UnitTypes.ship), 
+        Vector2d(2, 1),
+        (Vector2d(i%3, i//3) for i in (0, 1, 2, 3, 4, 6, 7, 8)))
+
+class Building(GenericAliveObject, GameObject):
+
+    def __init__(self, buildingType: BuildingType, pos: Vector2d, direction: Direction = Direction(0)) -> None:
+        GenericAliveObject.__init__(self, buildingType.texture, buildingType.hp.value, buildingType.hp.armorType, buildingType.hp.armor)
+        self.pos = pos # position of upper-left corner
+        self.size = buildingType.size
+        self.buildingType = buildingType
+        self.direction = direction
+
+        GameObject.__init__(self, "Building")
+        self.add_component(TextureAsComponent(self, buildingType.texture))
+        self.transform.translate((pos + (self.size / 2)) * 64)
+        self.transform.rotate(direction.toAngle())
+
+    def placeOnMap(self, map: Map):
+        if self.buildingType.body != None:
+            center = (self.size- Vector2d(1, 1)) / 2
+            if self.direction.value % 2 == 1:
+                ncenter = Vector2d(center.y, center.x) 
+            else:
+                ncenter = Vector2d(center.x, center.y) 
+            for vec in self.buildingType.body:
+                map.get(self.direction.rotateVector2d(vec - center) + ncenter + self.pos).isTaken = True
+        else:
+            for y in range(self.size.y):
+                for x in range(self.size.x):
+                    map[y + self.pos.y][x + self.pos.x].isTaken = True
+
+    def takeOfMap(self, map: Map):
+        if self.buildingType.body != None:
+            center = (self.size- Vector2d(1, 1)) / 2
+            if self.direction.value % 2 == 1:
+                ncenter = Vector2d(center.y, center.x) 
+            else:
+                ncenter = Vector2d(center.x, center.y) 
+            for vec in self.buildingType.body:
+                map.get(self.direction.rotateVector2d(vec - center) + ncenter + self.pos).isTaken = False
+        else:
+            for y in range(self.size.y):
+                for x in range(self.size.x):
+                    map[y + self.pos.y][x + self.pos.x].isTaken = False
+
+    def upgrade(self):
+        pass
+    def repair(self):
+        pass
+
+class IndustrialBuilding(Building):
+    def __init__(self, buildingType: Industrial, pos: Vector2d, direction: Direction = Direction(0)) -> None:
+        super().__init__(buildingType, pos, direction)
+        self.producePoint = buildingType.producePoint
         self.trainQueue: list[UnitType] = []
+        self.timer: int = 0
+        center = (self.size - Vector2d(1, 1)) / 2
+        if self.direction.value % 2 == 1:
+            ncenter = Vector2d(center.y, center.x) 
+        else:
+            ncenter = Vector2d(center.x, center.y) 
+        self.producePoint = (self.direction.rotateVector2d(self.producePoint - center) + ncenter)
 
     def addToQueue(self, unitType: UnitType) -> None:
-        if unitType in self.produces:
+        if unitType in self.buildingType.produces:
             self.trainQueue.append(unitType)
         else:
             raise ValueError(f"{unitType} is not in {self.produces}")
@@ -61,11 +134,6 @@ class Industrial(BuildingType):
         unitType = self.trainQueue[0]
         self.spawn_unit(unitType)
 
-    def spawn_unit(self, unitType: UnitType) -> None:
-        spawn_position = Vector2d(self.size.x + 1, self.size.y + 1)
-        new_unit = unitType(spawn_position) 
-        #тут должно быть добавления юнита в игру
-
     def iteration(self) -> None:
         if len(self.trainQueue) > 0:
             self.timer += 1
@@ -74,55 +142,9 @@ class Industrial(BuildingType):
                 self.trainQueue.pop(0)
                 self.timer = 0
 
-
-class BuldingsTypes():
-    """
-    Here have to be all buildings in the game
-    """
-
-    shipYard = Industrial(
-        Textures.shipYard,
-        Vector2d(3, 3),
-        AliveInArmor(3, 10, 100),
-        Cost({ResourceTypes.wood: 20}),
-        100, 
-        (UnitTypes.ship), 
-        (Vector2d(i%3, i//3) for i in (0, 1, 2, 3, 4, 6, 7, 8, 9)))
-
-class Building(GenericAliveObject, GameObject):
-
-    def __init__(self, buildingType: BuildingType, pos: Vector2d) -> None:
-        GenericAliveObject.__init__(self, buildingType.texture, buildingType.hp.value, buildingType.hp.armorType, buildingType.hp.armor)
-        self.pos = pos # position of upper-left corner
-        self.size = buildingType.size
-        self.buildingType = buildingType
-
-        GameObject.__init__(self, "Building")
-        self.add_component(TextureAsComponent(self, buildingType.texture))
-        self.transform.translate((pos + (self.size / 2)) * 64)
-
-    def placeOnMap(self, map: Map):
-        if self.buildingType.body != None:
-            for vec in self.buildingType.body:
-                map.get(vec + self.pos).isTaken = True
-        else:
-            for y in range(self.size.y):
-                for x in range(self.size.x):
-                    map[y + self.pos.y][x + self.pos.x].isTaken = True
-
-    def takeOfMap(self, map: Map):
-        if self.buildingType.body != None:
-            for vec in self.buildingType.body:
-                map.get(vec + self.pos).isTaken = False
-        else:
-            for y in range(self.size.y):
-                for x in range(self.size.x):
-                    map[y + self.pos.y][x + self.pos.x].isTaken = False
-
-    def upgrade(self):
-        pass
-    def repair(self):
-        pass
+    def spawn_unit(self, unitType: UnitType, map: Map) -> None:
+        u = Unit(unitType, self.producePoint + self.pos, self.direction.toAngle())
+        u.placeOnMap(map)
 
 class ConstructionSite:
 

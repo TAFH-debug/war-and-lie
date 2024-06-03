@@ -77,7 +77,7 @@ class CountAble:
 class GenericObject(HasTexture):
     pos: Vector2d
     size: Vector2d
-    direction: Angle
+    angle: Angle
 
     def __init__(self, texture: Texture) -> None:
         super().__init__(texture)

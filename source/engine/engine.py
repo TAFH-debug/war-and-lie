@@ -43,15 +43,18 @@ class Engine:
             logging.info("Quitting")
             exit()
 
+    def iteration(self):
+        for event in pg.event.get():
+            self.pygameEventProcessing(event)
+        
+        for i in GameObject.objects:
+            i.update()
+
+        for i in GameObject.objects:
+            i.draw(self.display)
+
+        pg.display.flip()
     def cycle(self):
         while True:
-            for event in pg.event.get():
-                self.pygameEventProcessing(event)
+            self.iteration()
             
-            for i in GameObject.objects:
-                i.update()
-
-            for i in GameObject.objects:
-                i.draw(self.display)
-
-            pg.display.flip()
