@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from .engine.vmath import *
+from source.vmath import *
 
 
 # Needed for hp (or other things that have max value and are positive only)

@@ -1,4 +1,4 @@
-from source.engine import Scene
+from engine.scene_manager import Scene
 from .game_object import GameObject
 import pygame as pg
 import logging

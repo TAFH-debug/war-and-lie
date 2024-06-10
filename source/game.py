@@ -1,4 +1,4 @@
-from source.engine.menu.menu import *
+from source.client.engine.menu.menu import *
 import pygame
 
 display: pygame.Surface | None = None

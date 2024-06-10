@@ -2,8 +2,8 @@ import pygame
 from pygame import Surface
 from math import cos, sin, pi
 
-from source.engine.vmath import Vector2d, Angle
-from source.engine.game_object import Component, GameObject
+from engine.vmath import Vector2d, Angle
+from engine.game_object import Component, GameObject
 
 SPRITE_PATH = "./sprites"
 

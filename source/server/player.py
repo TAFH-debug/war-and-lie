@@ -3,7 +3,7 @@ from .bulding import Building
 from .resources import Resource, ResourceTypes
 from .Map import Map
 
-from source.engine.vmath import Vector2d
+from source.vmath import Vector2d
 
 class Player:
     index: int

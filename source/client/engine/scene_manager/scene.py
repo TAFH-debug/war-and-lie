@@ -1,4 +1,4 @@
-from source.engine.game_object import Prefab
+from engine.game_object import Prefab
 
 class Scene:
     name: str

@@ -1,5 +1,5 @@
 from .Map import Map
-from .engine.vmath import *
+from  source.vmath import *
 from .generic import AliveInArmor, Damage, GenericAliveObject
 from .tile import Tile
 from .resources import Cost, ResourceTypes

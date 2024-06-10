@@ -3,7 +3,7 @@ from .unit import UnitType, UnitTypes, Unit
 from .resources import Cost, ResourceTypes
 from .Map import Map
 
-from source.engine.vmath import Vector2d, Direction
+from source.vmath import Vector2d, Direction
 
 class BuildingType:
 
