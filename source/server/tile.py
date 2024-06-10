@@ -1,16 +1,15 @@
 from .generic import GenericObject
-from .textures import *
 
-from source.engine.game_object import GameObject
+from source.engine.vmath import Vector2d
 
 class Landscape:
     # TODO some other parameters are required
     passability: int  # multiply the time needed for unit to pass this tile by passability
-    texture: Texture
+    id: str
 
-    def __init__(self, passability: int, texture: Texture) -> None:
+    def __init__(self, id: str, passability: int) -> None:
         self.passability = passability
-        self.texture = texture
+        self.id = id
 
 
 class Landscapes():
@@ -18,20 +17,17 @@ class Landscapes():
     Here shall be all landscape types in the game
     """
     # example landscape
-    water = Landscape(2, Textures.water)
+    water = Landscape("wal:tile:water", 2)
 
 
-class Tile(GameObject, GenericObject):
+class Tile(GenericObject):
     landscape: Landscape
     height: int  # TODO in another version height have to be used
     isTaken: bool  # if smth\smbd stands on this tile
 
     def __init__(self, pos: Vector2d, landscape: Landscape) -> None:
-        GameObject.__init__(self, "Tile")
-        self.transform.translate((pos + Vector2d(0.5, 0.5)) * 64)
-        self.add_component(TextureAsComponent(self, landscape.texture))
 
-        GenericObject.__init__(self, landscape.texture)
+        GenericObject.__init__(self)
         self.pos = pos
         self.landscape = landscape
         self.isTaken = False

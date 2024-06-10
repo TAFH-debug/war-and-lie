@@ -1,14 +1,13 @@
 from .Map import Map
 from .engine.vmath import *
 from .generic import AliveInArmor, Damage, GenericAliveObject
-from .textures import Texture, Textures, TextureAsComponent
 from .tile import Tile
 from .resources import Cost, ResourceTypes
 
-from source.engine.game_object import GameObject
+# from source.engine.game_object import GameObject
 
 class UnitType:
-    texture: Texture
+    id: str
     size: Vector2d
     speed: float
     hp: AliveInArmor
@@ -16,8 +15,8 @@ class UnitType:
     cost: Cost
     productionTime: int
 
-    def __init__(self, texture: Texture, size: Vector2d, speed: float, hp: AliveInArmor, damage: Damage, cost: Cost, productionTime: int) -> None:
-        self.texture = texture
+    def __init__(self, id: str, size: Vector2d, speed: float, hp: AliveInArmor, damage: Damage, cost: Cost, productionTime: int) -> None:
+        self.id = id
         self.size = size
         self.speed = speed
         self.hp = hp
@@ -31,15 +30,15 @@ class UnitTypes():
     Here must be all unit types in the game
     """
 
-    ship = UnitType(Textures.ship, Vector2d(2, 2), 20, AliveInArmor(2, 10, 100), Damage((10, 23, 20)), Cost({ResourceTypes.wood: 3}), 10)
+    ship = UnitType("wal:unit:ship", Vector2d(2, 2), 20, AliveInArmor(2, 10, 100), Damage((10, 23, 20)), Cost({ResourceTypes.wood: 3}), 10)
 
 
-class Unit(GenericAliveObject, GameObject):
+class Unit(GenericAliveObject):
     speed: float
     damage: Damage
 
     def __init__(self, unitType: UnitType, pos: Vector2d = Vector2d(0, 0), direction: Angle = Angle(0)) -> None:
-        GenericAliveObject.__init__(self, unitType.texture, unitType.hp(), unitType.hp.armorType, unitType.hp.armor)
+        GenericAliveObject.__init__(self, unitType.hp.value, unitType.hp.armorType, unitType.hp.armor)
         self.pos = pos
         self.direction = direction
         self.speed = unitType.speed
@@ -47,10 +46,6 @@ class Unit(GenericAliveObject, GameObject):
         self.size = unitType.size
         self.path: list[Tile] = []
         self.current = 0
-
-        GameObject.__init__(self, "Unit")
-        self.add_component(TextureAsComponent(self, unitType.texture))
-        self.transform.translate((pos + Vector2d(0.5, 0.5)) * 64)
 
     def pathFinding(self, map: Map, endPoint: Tile) -> list[Tile]:  # A* algorithm
         # да здравствует лапша-код!

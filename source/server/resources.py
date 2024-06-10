@@ -44,6 +44,7 @@ class ResourceTypes:
 
     wood = ResourceType("Wood", 0)
     
+    allResources: list[ResourceType] = [wood]
 # Класс для шахт и деревьев
 class ResourceSource(GenericObject):
     name: str

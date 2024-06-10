@@ -1,23 +1,21 @@
 from .generic import AliveInArmor, Damage, GenericAliveObject
-from .textures import Texture, Textures, TextureAsComponent
 from .unit import UnitType, UnitTypes, Unit
 from .resources import Cost, ResourceTypes
 from .Map import Map
 
-from source.engine.game_object import GameObject
 from source.engine.vmath import Vector2d, Direction
 
 class BuildingType:
 
-    texture: Texture
+    id: str
     size: Vector2d
     hp: AliveInArmor
     cost: Cost
     body: tuple[Vector2d]
     constructionTime: int
 
-    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, body: tuple[Vector2d] = None) -> None:
-        self.texture = texture
+    def __init__(self, id: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, body: tuple[Vector2d] = None) -> None:
+        self.id = id
         self.size = size
         self.hp = hp
         self.cost = cost
@@ -28,15 +26,15 @@ class BuildingType:
 class Defender(BuildingType):
     damage: Damage
 
-    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, damage: int, body: tuple[Vector2d] = None) -> None:
-        super().__init__(texture, size, hp, cost, constructionTime, body)
+    def __init__(self, id: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, damage: int, body: tuple[Vector2d] = None) -> None:
+        super().__init__(id, size, hp, cost, constructionTime, body)
         self.damage = damage
 
 class Industrial(BuildingType): 
     produces: tuple[UnitType]
 
-    def __init__(self, texture: Texture, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, produces: tuple[UnitType], producePoint: Vector2d, body: tuple[Vector2d] = None) -> None:
-        super().__init__(texture, size, hp, cost, constructionTime, body)
+    def __init__(self, id: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, produces: tuple[UnitType], producePoint: Vector2d, body: tuple[Vector2d] = None) -> None:
+        super().__init__(id, size, hp, cost, constructionTime, body)
         self.produces = produces
         self.producePoint = producePoint
 
@@ -46,7 +44,7 @@ class BuldingsTypes():
     """
 
     shipYard = Industrial(
-        Textures.shipYard,
+        "wal:building:ship_yard",
         Vector2d(3, 3),
         AliveInArmor(3, 10, 100),
         Cost({ResourceTypes.wood: 20}),
@@ -55,19 +53,14 @@ class BuldingsTypes():
         Vector2d(2, 1),
         (Vector2d(i%3, i//3) for i in (0, 1, 2, 3, 4, 6, 7, 8)))
 
-class Building(GenericAliveObject, GameObject):
+class Building(GenericAliveObject):
 
     def __init__(self, buildingType: BuildingType, pos: Vector2d, direction: Direction = Direction(0)) -> None:
-        GenericAliveObject.__init__(self, buildingType.texture, buildingType.hp.value, buildingType.hp.armorType, buildingType.hp.armor)
+        GenericAliveObject.__init__(self, buildingType.hp.value, buildingType.hp.armorType, buildingType.hp.armor)
         self.pos = pos # position of upper-left corner
         self.size = buildingType.size
         self.buildingType = buildingType
         self.direction = direction
-
-        GameObject.__init__(self, "Building")
-        self.add_component(TextureAsComponent(self, buildingType.texture))
-        self.transform.translate((pos + (self.size / 2)) * 64)
-        self.transform.rotate(direction.toAngle())
 
     def placeOnMap(self, map: Map):
         if self.buildingType.body != None:

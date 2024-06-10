@@ -1,11 +1,6 @@
-from math import cos, sin
 from typing import Iterable
 
-import pygame
-from pygame import Surface
-
 from .engine.vmath import *
-from .textures import Texture, HasTexture
 
 
 # Needed for hp (or other things that have max value and are positive only)
@@ -73,14 +68,16 @@ class CountAble:
             self.value = value
 
 
-# generic class for all objects that has texture and position
-class GenericObject(HasTexture):
+# generic class for all objects that has position
+class GenericObject:
     pos: Vector2d
     size: Vector2d
     angle: Angle
 
-    def __init__(self, texture: Texture) -> None:
-        super().__init__(texture)
+    def __init__(self) -> None:
+        self.pos = Vector2d(0, 0)
+        self.size = Vector2d(1, 1)
+        self.angle = Angle(0)
 
     def getRelatedCords(self, size: Vector2d) -> list[Vector2d]:
         delta = [
@@ -104,8 +101,8 @@ class GenericObject(HasTexture):
 class GenericAliveObject(GenericObject, AliveInArmor):
     velocity: Vector2d
 
-    def __init__(self, texture: Texture, hp: int, armorType: int, armor: int) -> None:
-        GenericObject.__init__(self, texture)
+    def __init__(self, hp: int, armorType: int, armor: int) -> None:
+        GenericObject.__init__(self)
         AliveInArmor.__init__(self, armorType, armor, hp)
 
 
