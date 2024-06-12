@@ -1,6 +1,6 @@
 from .generic import GenericObject
 
-from source.vmath import Vector2d
+from server.vmath import Vector2d
 
 class Landscape:
     # TODO some other parameters are required

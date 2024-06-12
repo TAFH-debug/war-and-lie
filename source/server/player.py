@@ -3,7 +3,7 @@ from .bulding import Building
 from .resources import Resource, ResourceTypes
 from .Map import Map
 
-from source.vmath import Vector2d
+from server.vmath import Vector2d
 
 class Player:
     index: int
@@ -26,6 +26,9 @@ class Player:
         self.resources = [Resource(rType, 0, 0) for rType in ResourceTypes.allResources]
         self.vision = [[True for _ in world] for _ in world[0]]
 
+    def updateVision(self, world: Map) -> None:
+        pass
+    
 class Game:
     name: str
     players: list[Player]
@@ -37,7 +40,7 @@ class Game:
         self.players = [Player(i) for i in range(playerNumber)]
 
     def initVoid(self) -> None:
-        self.map.initEmpty()
+        self.world.initEmpty()
         for player in self.players:
             player.initSpectator(self.world)
     

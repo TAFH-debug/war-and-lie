@@ -1,9 +1,10 @@
-from .generic import AliveInArmor, Damage, GenericAliveObject
+from .generic import AliveInArmor, GenericAliveObject
 from .unit import UnitType, UnitTypes, Unit
 from .resources import Cost, ResourceTypes
 from .Map import Map
+from .weapon import Weapon
 
-from source.vmath import Vector2d, Direction
+from server.vmath import Vector2d, Direction
 
 class BuildingType:
 
@@ -24,11 +25,11 @@ class BuildingType:
     
 
 class Defender(BuildingType):
-    damage: Damage
+    weapons: tuple[Weapon]
 
-    def __init__(self, id: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, damage: int, body: tuple[Vector2d] = None) -> None:
+    def __init__(self, id: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, weapons: tuple[Weapon], body: tuple[Vector2d] = None) -> None:
         super().__init__(id, size, hp, cost, constructionTime, body)
-        self.damage = damage
+        self.weapons = weapons
 
 class Industrial(BuildingType): 
     produces: tuple[UnitType]
@@ -54,9 +55,13 @@ class BuldingsTypes():
         (Vector2d(i%3, i//3) for i in (0, 1, 2, 3, 4, 6, 7, 8)))
 
 class Building(GenericAliveObject):
+    buildingType: BuildingType
+    playerIndex: int
+    direction: Direction
 
-    def __init__(self, buildingType: BuildingType, pos: Vector2d, direction: Direction = Direction(0)) -> None:
+    def __init__(self, buildingType: BuildingType, playerIndex: int, pos: Vector2d, direction: Direction = Direction(0)) -> None:
         GenericAliveObject.__init__(self, buildingType.hp.value, buildingType.hp.armorType, buildingType.hp.armor)
+        self.playerIndex = playerIndex
         self.pos = pos # position of upper-left corner
         self.size = buildingType.size
         self.buildingType = buildingType

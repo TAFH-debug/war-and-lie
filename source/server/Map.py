@@ -1,7 +1,7 @@
 from .generic import GenericMap
 from .tile import Tile, Landscapes
 
-from source.vmath import Vector2d
+from server.vmath import Vector2d
 
 class Map(GenericMap[Tile]):
     def __init__(self, size: Vector2d) -> None:

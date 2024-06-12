@@ -1,4 +1,4 @@
-from math import pi, sqrt
+from math import pi, sqrt, sin, cos
 from typing import Callable
 
 
@@ -31,7 +31,7 @@ class Vector2d:
         return int(self.y)
 
     def distanceLooped(self, other: "Vector2d", size: "Vector2d") -> float:
-        return sqrt(((self.x - other.x) ** 2) % ((size.x // 2) ** 2) + ((self.y - other.y) ** 2) % ((size.y // 2) ** 2))
+        return sqrt(((self.x - other.x + size.x / 2) % size.x - (size.x / 2)) ** 2 + ((self.y - other.y + size.y / 2) % size.y - (size.y / 2)) ** 2)
 
     def __add__(self, other: "Vector2d") -> "Vector2d":
         return Vector2d(self.x + other.x, self.y + other.y)
@@ -48,6 +48,12 @@ class Vector2d:
 
     def __truediv__(self, other: float):
         return Vector2d(self.x / other, self.y / other)
+
+    def __floordiv__(self, other: float):
+        return Vector2d(self.x // other, self.y // other)
+    
+    def __mod__(self, other: float):
+        return Vector2d(self.x % other, self.y % other)
 
     def operation(self, other: "Vector2d", operation: Callable[[float, float], float]) -> "Vector2d":
         return Vector2d(operation(self.x, other.x), operation(self.y, other.y))
@@ -86,6 +92,9 @@ class Angle:
 
     def bound(self):
         self.angle %= (2 * pi)
+
+    def toVector2D(self) -> Vector2d:
+        return Vector2d(cos(self.angle), sin(self.angle))
 
     def __add__(self, other: "Angle") -> "Angle":
         return Angle(self.get() + other.get())

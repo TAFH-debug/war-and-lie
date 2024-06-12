@@ -1,26 +1,37 @@
 from .Map import Map
-from  source.vmath import *
+from  server.vmath import *
 from .generic import AliveInArmor, Damage, GenericAliveObject
-from .tile import Tile
+from .tile import Tile, Landscapes
 from .resources import Cost, ResourceTypes
+from .weapon import Weapon, WeaponTypes
 
 # from source.engine.game_object import GameObject
+
+class UnitLocatingTypes:
+    UNDER_WATER = 0
+    ON_WATER = 1
+    ON_GROUND = 2
+    ABOVE_GROUND = 3
+    IN_AIR = 4
+
 
 class UnitType:
     id: str
     size: Vector2d
     speed: float
+    locations: tuple[bool]
     hp: AliveInArmor
-    damage: Damage
+    weapons: tuple[Weapon]
     cost: Cost
     productionTime: int
 
-    def __init__(self, id: str, size: Vector2d, speed: float, hp: AliveInArmor, damage: Damage, cost: Cost, productionTime: int) -> None:
+    def __init__(self, id: str = "wal:unit:none", size: Vector2d = Vector2d(1, 1), speed: float = 0, locations: tuple[int] = (), hp: AliveInArmor = AliveInArmor(1, 0, 0), weapons: tuple[Weapon] = (), cost: Cost = Cost({}), productionTime: int = 0) -> None:
         self.id = id
         self.size = size
         self.speed = speed
+        self.locations = (i in locations for i in range(5))
         self.hp = hp
-        self.damage = damage
+        self.weapons = weapons
         self.cost = cost
         self.productionTime = productionTime
 
@@ -30,22 +41,25 @@ class UnitTypes():
     Here must be all unit types in the game
     """
 
-    ship = UnitType("wal:unit:ship", Vector2d(2, 2), 20, AliveInArmor(2, 10, 100), Damage((10, 23, 20)), Cost({ResourceTypes.wood: 3}), 10)
+    ship = UnitType("wal:unit:ship", Vector2d(2, 2), 20, (UnitLocatingTypes.ON_WATER,), AliveInArmor(3, 30, 6000), (WeaponTypes.shipCanon,), Cost({ResourceTypes.wood: 3}), 10)
 
 
 class Unit(GenericAliveObject):
+    unitType: UnitType
+    playerIndex: int
     speed: float
-    damage: Damage
+    weapons: tuple[Weapon]
 
-    def __init__(self, unitType: UnitType, pos: Vector2d = Vector2d(0, 0), direction: Angle = Angle(0)) -> None:
+    def __init__(self, unitType: UnitType, playerIndex: int, pos: Vector2d = Vector2d(0, 0), angle: Angle = Angle(0)) -> None:
         GenericAliveObject.__init__(self, unitType.hp.value, unitType.hp.armorType, unitType.hp.armor)
+        self.unitType = unitType
+        self.playerIndex = playerIndex
         self.pos = pos
-        self.direction = direction
+        self.direcangletion = angle
         self.speed = unitType.speed
-        self.damage = unitType.damage
+        self.weapons = tuple(Weapon(wType, pos, angle) for wType in unitType.weapons)
         self.size = unitType.size
         self.path: list[Tile] = []
-        self.current = 0
 
     def pathFinding(self, map: Map, endPoint: Tile) -> list[Tile]:  # A* algorithm
         # да здравствует лапша-код!
@@ -54,8 +68,7 @@ class Unit(GenericAliveObject):
         opened: list[tuple[Tile, float, float, int]] = []
         closed: list[tuple[Tile, float, float, int]] = []
 
-        def isIn(pos: Vector2d, smth: list[tuple[Tile, float, float, int]]) -> tuple[
-            bool, tuple[Tile, float, float, int] | None]:
+        def isIn(pos: Vector2d, smth: list[tuple[Tile, float, float, int]]) -> tuple[bool, tuple[Tile, float, float, int] | None]:
             for l in smth:
                 if l[0].pos == pos:
                     return (True, l)
@@ -76,7 +89,9 @@ class Unit(GenericAliveObject):
             if current[0] == endPoint:
                 break
             for relate in current[0].getRelatedCords(map.size):
-                if map.get(Vector2d(int(relate.x), int(relate.y))).isTaken or isIn(relate, closed)[0]:
+                if isIn(relate, closed)[0] or map.get(Vector2d(int(relate.x), int(relate.y))).isTaken:
+                    continue
+                if (self.unitType.locations[UnitLocatingTypes.UNDER_WATER] or self.unitType.locations[UnitLocatingTypes.ON_WATER]) and map.get(Vector2d(int(relate.x), int(relate.y))).landscape == Landscapes.water:
                     continue
                 b, l = isIn(relate, opened)
                 assert type(l) == tuple[Tile, float, float, int]
