@@ -1,4 +1,4 @@
-from math import pi, sqrt, sin, cos
+from math import pi, sqrt, sin, cos, atan2
 from typing import Callable
 
 
@@ -32,6 +32,9 @@ class Vector2d:
 
     def distanceLooped(self, other: "Vector2d", size: "Vector2d") -> float:
         return sqrt(((self.x - other.x + size.x / 2) % size.x - (size.x / 2)) ** 2 + ((self.y - other.y + size.y / 2) % size.y - (size.y / 2)) ** 2)
+
+    def toAngle(self) -> "Angle":
+        return Angle(atan2(-self.y, self.x))
 
     def __add__(self, other: "Vector2d") -> "Vector2d":
         return Vector2d(self.x + other.x, self.y + other.y)

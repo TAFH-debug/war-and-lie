@@ -1,6 +1,5 @@
 from server.vmath import *
 from .generic import GenericObject, Damage
-from math import atan2
 
 class WeaponType:
     id: str
@@ -44,7 +43,7 @@ class Weapon(GenericObject):
             return False
         if self.weaponType.fov.angle == 2 * pi:
             return True
-        if -self.weaponType.fov.angle / 2 <= (unitAngle.angle - (atan2(divercity.y, divercity.x) % (2 * pi)) + pi) % (2 * pi) - pi <= self.weaponType.fov.angle / 2:
+        if -self.weaponType.fov.angle / 2 <= (unitAngle.angle - (divercity.toAngle().angle % (2 * pi)) + pi) % (2 * pi) - pi <= self.weaponType.fov.angle / 2:
             return True
         return False
     

@@ -10,6 +10,9 @@ class Landscape:
     def __init__(self, id: str, passability: int) -> None:
         self.passability = passability
         self.id = id
+    
+    def __eq__(self, other: "Landscape") -> bool:
+        return self.id == other.id 
 
 
 class Landscapes():
@@ -37,3 +40,6 @@ class Tile(GenericObject):
 
     def __ne__(self, other: "Tile") -> bool:
         return (self.pos != other.pos)
+
+    def __repr__(self) -> str:
+        return self.landscape.id + ": " + self.pos.__repr__()

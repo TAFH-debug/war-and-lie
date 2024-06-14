@@ -18,17 +18,19 @@ class UnitLocatingTypes:
 class UnitType:
     id: str
     size: Vector2d
-    speed: float
+    speed: float # tile per 20 ticks
+    angularSpeed: Angle # per 20 ticks
     locations: tuple[bool]
     hp: AliveInArmor
     weapons: tuple[Weapon]
     cost: Cost
     productionTime: int
 
-    def __init__(self, id: str = "wal:unit:none", size: Vector2d = Vector2d(1, 1), speed: float = 0, locations: tuple[int] = (), hp: AliveInArmor = AliveInArmor(1, 0, 0), weapons: tuple[Weapon] = (), cost: Cost = Cost({}), productionTime: int = 0) -> None:
+    def __init__(self, id: str = "wal:unit:none", size: Vector2d = Vector2d(1, 1), speed: float = 0, angularSpeed: Angle = Angle(0), locations: tuple[int] = (), hp: AliveInArmor = AliveInArmor(1, 0, 0), weapons: tuple[Weapon] = (), cost: Cost = Cost({}), productionTime: int = 0) -> None:
         self.id = id
         self.size = size
         self.speed = speed
+        self.angularSpeed = angularSpeed
         self.locations = (i in locations for i in range(5))
         self.hp = hp
         self.weapons = weapons
@@ -41,13 +43,14 @@ class UnitTypes():
     Here must be all unit types in the game
     """
 
-    ship = UnitType("wal:unit:ship", Vector2d(2, 2), 20, (UnitLocatingTypes.ON_WATER,), AliveInArmor(3, 30, 6000), (WeaponTypes.shipCanon,), Cost({ResourceTypes.wood: 3}), 10)
-
+    ship = UnitType("wal:unit:ship", Vector2d(2, 2), 0.76, Angle(1 / 9 * pi), (UnitLocatingTypes.ON_WATER,), AliveInArmor(3, 30, 6000), (WeaponTypes.shipCanon,), Cost({ResourceTypes.wood: 3}), 10)
 
 class Unit(GenericAliveObject):
     unitType: UnitType
     playerIndex: int
     speed: float
+    movementProgress: float
+    angularSpeed: Angle
     weapons: tuple[Weapon]
 
     def __init__(self, unitType: UnitType, playerIndex: int, pos: Vector2d = Vector2d(0, 0), angle: Angle = Angle(0)) -> None:
@@ -55,8 +58,9 @@ class Unit(GenericAliveObject):
         self.unitType = unitType
         self.playerIndex = playerIndex
         self.pos = pos
-        self.direcangletion = angle
+        self.angle = angle
         self.speed = unitType.speed
+        self.angularSpeed = unitType.angularSpeed
         self.weapons = tuple(Weapon(wType, pos, angle) for wType in unitType.weapons)
         self.size = unitType.size
         self.path: list[Tile] = []
@@ -91,16 +95,16 @@ class Unit(GenericAliveObject):
             for relate in current[0].getRelatedCords(map.size):
                 if isIn(relate, closed)[0] or map.get(Vector2d(int(relate.x), int(relate.y))).isTaken:
                     continue
-                if (self.unitType.locations[UnitLocatingTypes.UNDER_WATER] or self.unitType.locations[UnitLocatingTypes.ON_WATER]) and map.get(Vector2d(int(relate.x), int(relate.y))).landscape == Landscapes.water:
-                    continue
+                # if not map.get(Vector2d(int(relate.x), int(relate.y))).landscape == Landscapes.water:
+                #     continue # TODO this shit have to be checked another way
                 b, l = isIn(relate, opened)
-                assert type(l) == tuple[Tile, float, float, int]
                 newG = current[1] + current[0].pos.distanceLooped(relate, map.size) * map.get(
                     Vector2d(int(relate.x), int(relate.y))).landscape.passability
                 if not b:
                     opened.append((map.get(Vector2d(int(relate.x), int(relate.y))), newG,
                                    endPoint.pos.distanceLooped(relate, map.size), len(closed) - 1))
                 elif l[1] > newG:
+                    assert type(l) == tuple and type(l[0]) == Tile and type(l[1]) == type(l[2]) == float and type(l[3]) == int
                     opened[opened.index(l)] = (l[0], newG, l[2], len(closed) - 1)
         self.path = []
         current = closed[-1]
@@ -109,6 +113,8 @@ class Unit(GenericAliveObject):
             if current == closed[0]:
                 break
             current = closed[current[3]]
+        self.path.reverse()
+        self.path.pop(0)
         return self.path
 
     def placeOnMap(self, map: Map):
@@ -117,8 +123,41 @@ class Unit(GenericAliveObject):
     def takeOfMap(self, map: Map):
         map.get(self.pos).isTaken = False
 
-    def rotate(self, angularVelocity: float):
-        pass
+    def setPos(self, pos: Vector2d, map: Map):
+        self.takeOfMap(map)
+        self.pos = pos
+        for weapon in self.weapons:
+            weapon.pos = pos
+        self.placeOnMap(map)
 
-    def move(self):  #
-        pass
+    def rotate(self) -> bool:
+        needed = (self.path[0].pos - self.pos).toAngle()
+        deviation = self.angle - needed
+        if round(deviation.angle, 6) == 0:
+            return True
+        self.movementProgress = 0
+        if deviation.angle > pi:
+            if 2*pi - deviation.angle < (self.angularSpeed.angle / 20):
+                self.angle = needed
+                return False
+            self.angle = self.angle + Angle(self.angularSpeed.angle / 20)
+            return False
+        else:
+            if deviation.angle < (self.angularSpeed.angle / 20):
+                self.angle = needed
+                return False
+            self.angle = self.angle - Angle(self.angularSpeed.angle / 20)
+            return False
+
+    def move(self, map: Map):  #
+        self.movementProgress += self.speed / 20
+        if self.movementProgress >= self.path[0].pos.distanceLooped(self.pos, map.size):
+            self.movementProgress -= self.path[0].pos.distanceLooped(self.pos, map.size)
+            self.setPos(self.path[0].pos, map)
+            self.path.pop(0)
+
+    def update(self, map: Map):
+        if len(self.path) != 0:
+            isEnough = self.rotate()
+            if isEnough:
+                self.move(map)
