@@ -14,15 +14,28 @@ class BuildingType:
     cost: Cost
     body: tuple[Vector2d]
     constructionTime: int
+    upgradesTo: "BuildingType"
 
-    def __init__(self, id: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, body: tuple[Vector2d] = None) -> None:
+    def __init__(self, id: str = "wal:building:none", size: Vector2d = Vector2d(1, 1), hp: AliveInArmor = AliveInArmor(0, 0, 0), cost: Cost = Cost({}), constructionTime: int = 0, body: tuple[Vector2d] = None, upgradesTo: "BuildingType" = None) -> None:
         self.id = id
         self.size = size
         self.hp = hp
         self.cost = cost
         self.constructionTime = constructionTime
         self.body = body
-    
+        self.upgradesTo = upgradesTo
+
+    def upgrade(self):
+        BuildingType.__init__(
+            self, 
+            self.upgradesTo.id,
+            self.upgradesTo.size, 
+            self.upgradesTo.hp, 
+            self.upgradesTo.cost,
+            self.upgradesTo.constructionTime,
+            self.upgradesTo.body,
+            self.upgradesTo.upgradesTo
+        )
 
 class Defender(BuildingType):
     weapons: tuple[Weapon]
@@ -35,11 +48,17 @@ class Industrial(BuildingType):
     produces: tuple[UnitType]
 
     def __init__(self, id: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, produces: tuple[UnitType], producePoint: Vector2d, body: tuple[Vector2d] = None) -> None:
-        super().__init__(id, size, hp, cost, constructionTime, body)
+        BuildingType.__init__(self, id, size, hp, cost, constructionTime, body)
         self.produces = produces
         self.producePoint = producePoint
+    
+    def upgrade(self):
+        self.produces = self.upgradesTo.produces
+        BuildingType.upgrade(self)
 
-class BuldingsTypes():
+    
+
+class BuildingTypes():
     """
     Here have to be all buildings in the game
     """
@@ -66,8 +85,9 @@ class Building(GenericAliveObject):
         self.size = buildingType.size
         self.buildingType = buildingType
         self.direction = direction
+        self.buildingProgress = self.buildingType.constructionTime
 
-    def placeOnMap(self, map: Map):
+    def placeOnMap(self, map: Map) -> None:
         if self.buildingType.body != None:
             center = (self.size- Vector2d(1, 1)) / 2
             if self.direction.value % 2 == 1:
@@ -81,7 +101,7 @@ class Building(GenericAliveObject):
                 for x in range(self.size.x):
                     map[y + self.pos.y][x + self.pos.x].isTaken = True
 
-    def takeOfMap(self, map: Map):
+    def takeOfMap(self, map: Map) -> None:
         if self.buildingType.body != None:
             center = (self.size- Vector2d(1, 1)) / 2
             if self.direction.value % 2 == 1:
@@ -95,14 +115,24 @@ class Building(GenericAliveObject):
                 for x in range(self.size.x):
                     map[y + self.pos.y][x + self.pos.x].isTaken = False
 
-    def upgrade(self):
-        pass
+    def upgrade(self) -> None:
+        GenericAliveObject.__init__(self, self.buildingType.upgradesTo.hp.value, self.buildingType.upgradesTo.hp.armorType, self.buildingType.upgradesTo.hp.armor)
+        self.buildingType.upgrade()
+        self.buildingProgress = self.buildingType.constructionTime
+
     def repair(self):
         pass
 
+    def update(self) -> bool:
+        if self.buildingProgress != 0:
+            self.buildingProgress -= 1
+            return False
+        return True
+
+
 class IndustrialBuilding(Building):
     def __init__(self, buildingType: Industrial, pos: Vector2d, direction: Direction = Direction(0)) -> None:
-        super().__init__(buildingType, pos, direction)
+        Building.__init__(self, buildingType, pos, direction)
         self.producePoint = buildingType.producePoint
         self.trainQueue: list[UnitType] = []
         self.timer: int = 0
@@ -132,16 +162,19 @@ class IndustrialBuilding(Building):
         unitType = self.trainQueue[0]
         self.spawn_unit(unitType)
 
-    def iteration(self) -> None:
+    def update(self) -> bool:
+        if not Building.update(self):
+            return False
         if len(self.trainQueue) > 0:
             self.timer += 1
             if self.timer >= self.trainQueue[0].productionTime:
                 self.train()
                 self.trainQueue.pop(0)
                 self.timer = 0
+        return True
 
     def spawn_unit(self, unitType: UnitType, map: Map) -> None:
-        u = Unit(unitType, self.producePoint + self.pos, self.direction.toAngle())
+        u = Unit(unitType, self.playerIndex, self.producePoint + self.pos, self.direction.toAngle())
         u.placeOnMap(map)
 
 class ConstructionSite:

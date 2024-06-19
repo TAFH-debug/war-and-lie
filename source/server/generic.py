@@ -101,9 +101,9 @@ class GenericObject:
 class GenericAliveObject(GenericObject, AliveInArmor):
     velocity: Vector2d
 
-    def __init__(self, hp: int, armorType: int, armor: int) -> None:
+    def __init__(self, maxhp: int, armorType: int, armor: int, hp: int = None) -> None:
         GenericObject.__init__(self)
-        AliveInArmor.__init__(self, armorType, armor, hp)
+        AliveInArmor.__init__(self, armorType, armor, maxhp, hp)
 
 
 class GenericMap[T]:

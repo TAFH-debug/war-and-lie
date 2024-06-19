@@ -36,7 +36,7 @@ class UnitType:
         self.weapons = weapons
         self.cost = cost
         self.productionTime = productionTime
-
+    
 
 class UnitTypes():
     """

@@ -1,8 +1,8 @@
 from .unit import Unit
-from .bulding import Building
+from .building import Building
 from .resources import Resource, ResourceTypes
 from .Map import Map
-
+from .technology import Tech
 from server.vmath import Vector2d
 
 class Player:
@@ -12,6 +12,7 @@ class Player:
     buildings: list[Building]
     resources: list[Resource]
     vision: list[list[bool]]
+    techs: list[Tech]
 
     def __init__(self, index: int = 0, name: str = "player") -> None:
         self.index = index
@@ -23,6 +24,7 @@ class Player:
     def initSpectator(self, world: Map) -> None:
         self.units = []
         self.buildings = []
+        self.techs = []
         self.resources = [Resource(rType, 0, 0) for rType in ResourceTypes.allResources]
         self.vision = [[True for _ in world] for _ in world[0]]
 
