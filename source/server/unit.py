@@ -21,17 +21,19 @@ class UnitType:
     speed: float # tile per 20 ticks
     angularSpeed: Angle # per 20 ticks
     locations: tuple[bool]
+    visionRange: int
     hp: AliveInArmor
     weapons: tuple[Weapon]
     cost: Cost
     productionTime: int
 
-    def __init__(self, id: str = "wal:unit:none", size: Vector2d = Vector2d(1, 1), speed: float = 0, angularSpeed: Angle = Angle(0), locations: tuple[int] = (), hp: AliveInArmor = AliveInArmor(1, 0, 0), weapons: tuple[Weapon] = (), cost: Cost = Cost({}), productionTime: int = 0) -> None:
+    def __init__(self, id: str = "wal:unit:none", size: Vector2d = Vector2d(1, 1), speed: float = 0, angularSpeed: Angle = Angle(0), locations: tuple[int] = (), visionRange: int = 0, hp: AliveInArmor = AliveInArmor(1, 0, 0), weapons: tuple[Weapon] = (), cost: Cost = Cost({}), productionTime: int = 0) -> None:
         self.id = id
         self.size = size
         self.speed = speed
         self.angularSpeed = angularSpeed
         self.locations = (i in locations for i in range(5))
+        self.visionRange = visionRange
         self.hp = hp
         self.weapons = weapons
         self.cost = cost
