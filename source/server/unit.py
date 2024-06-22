@@ -43,7 +43,8 @@ class UnitTypes():
     Here must be all unit types in the game
     """
 
-    ship = UnitType("wal:unit:ship", Vector2d(2, 2), 0.76, Angle(1 / 9 * pi), (UnitLocatingTypes.ON_WATER,), AliveInArmor(3, 30, 6000), (WeaponTypes.shipCanon,), Cost({ResourceTypes.wood: 3}), 10)
+    ship = UnitType("wal:unit:ship", Vector2d(2, 2), 0.76, Angle(1 / 9 * pi), (UnitLocatingTypes.ON_WATER,), AliveInArmor(3, 30, 6000), (WeaponTypes.shipCanon,), Cost({ResourceTypes.wood: 3}), 1000)
+    miner = UnitType("wal:unit:miner", Vector2d(1, 1), 1.2, Angle(1 / 4 * pi), (UnitLocatingTypes.ON_GROUND,), AliveInArmor(1, 4, 1300), (WeaponTypes.minerPickaxe,), Cost({ResourceTypes.wood: 1}), 320)
 
 class Unit(GenericAliveObject):
     unitType: UnitType

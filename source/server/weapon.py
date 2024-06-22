@@ -11,6 +11,7 @@ class WeaponType:
     fov: Angle
 
     def __init__(self,id: str = "wal:weapon:none", damage: Damage = Damage((0, 0, 0)), rapidity: int = 0, shootSeries: int = 0, canAttack: tuple[bool] = (0, 0, 0, 0, 0), distance: float = 0, fov: Angle = Angle(0)) -> None:
+        self.id = id
         self.damage = damage
         self.rapidity = rapidity
         self.shootSeries = shootSeries
@@ -52,4 +53,5 @@ class WeaponTypes:
     """
     Here might be all weapon types in the game
     """
-    shipCanon = WeaponType("wal:weapon:ship_canon", Damage((380, 740, 960)), 11, 2, (0, 1, 1, 0, 0), 6, Angle(7 / 9 * 2 * pi))
+    shipCanon = WeaponType("wal:weapon:ship_canon", Damage((380, 740, 960)), 27, 2, (0, 1, 1, 0, 0), 6, Angle(7 / 9 * 2 * pi))
+    minerPickaxe = WeaponType("wal:weapon:minerPickaxe", Damage((700, 340, 670)), 32, 1, (0, 0, 1, 0, 0), 1.5, Angle(1 / 8 * 2 * pi))
