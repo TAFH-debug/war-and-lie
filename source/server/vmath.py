@@ -164,3 +164,74 @@ class Directions:
         Vector2d(-1, 0), 
         Vector2d(0, 1)
     )
+
+def to_bytes(x) -> bytes:
+    '''
+    turns integers, floats into 4 length bytearray.\n
+    float is rounded.\n
+    lists are encoded badly
+    '''
+    if type(x) == int:
+        res = bytearray(5)
+        res[0] = 0
+        for i in range(4):
+            res[4-i] = (x // (256 ** i)) % 256
+    elif type(x) == float:
+        res = bytearray(5)
+        res[0] = 1
+        for i in range(4):
+            res[4-i] = int((x // (256 ** (i - 2))) % 256)
+    elif type(x) == bool:
+        res = bytes((2, int(x)))
+    elif type(x) in (tuple, list):
+        res = bytearray(2)
+        res[0] = 3
+        n = 0
+        for item in x:
+            if type(item) in (int, float):
+                res.extend(to_bytes(item))
+                n += 5
+            elif type(item) == bool:
+                res.extend(to_bytes(item))
+                n += 2
+            elif type(item) in (tuple, list):
+                ext = to_bytes(item)
+                res.extend(ext)
+                n += ext[1] + 2
+            else:
+                raise Exception(f"{type(item)}({item}) is not alowed")
+        res[1] = n
+    return bytes(res)
+
+def from_bytes(x : bytes):
+    if x[0] == 0:
+        res = 0
+        for i in range(4):
+            res += x[4-i] * (256 ** i)
+    elif x[0] == 1:
+        res = 0
+        for i in range(4):
+            res += x[4-i] * (256 ** (i - 2))
+    elif x[0] == 2:
+        res = bool(x[1])
+    elif x[0] == 3:
+        res = []
+        n = x[1]
+        curr = 2
+        while curr != n + 2:
+            if x[curr] in (0, 1):
+                res.append(from_bytes(x[curr: curr + 5]))
+                curr += 5
+            elif x[curr] == 2:
+                res.append(from_bytes(x[curr: curr + 2]))
+                curr += 2
+            elif x[curr] == 3:
+                res.append(from_bytes(x[curr: curr + x[curr + 1] + 2]))
+                curr += x[curr + 1] + 2
+            
+    return res
+
+
+a = [[2**i * 3**j for i in range(5)] for j in range(5)]
+
+print((from_bytes(to_bytes(a))))
