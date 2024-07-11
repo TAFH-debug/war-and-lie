@@ -16,7 +16,8 @@ class UnitLocatingTypes:
 
 
 class UnitType:
-    id: str
+    id: int
+    name: str
     size: Vector2d
     speed: float # tile per 20 ticks
     angularSpeed: Angle # per 20 ticks
@@ -27,8 +28,12 @@ class UnitType:
     cost: Cost
     productionTime: int
 
-    def __init__(self, id: str = "wal:unit:none", size: Vector2d = Vector2d(1, 1), speed: float = 0, angularSpeed: Angle = Angle(0), locations: tuple[int] = (), visionRange: int = 0, hp: AliveInArmor = AliveInArmor(1, 0, 0), weapons: tuple[Weapon] = (), cost: Cost = Cost({}), productionTime: int = 0) -> None:
-        self.id = id
+    idCount = 0
+
+    def __init__(self, name: str = "wal:unit:none", size: Vector2d = Vector2d(1, 1), speed: float = 0, angularSpeed: Angle = Angle(0), locations: tuple[int] = (), visionRange: int = 0, hp: AliveInArmor = AliveInArmor(1, 0, 0), weapons: tuple[Weapon] = (), cost: Cost = Cost({}), productionTime: int = 0) -> None:
+        self.id = UnitType.idCount
+        UnitType.idCount += 1
+        self.name = name
         self.size = size
         self.speed = speed
         self.angularSpeed = angularSpeed
@@ -39,6 +44,11 @@ class UnitType:
         self.cost = cost
         self.productionTime = productionTime
     
+    def as_bytes(self):
+        return to_bytes(self.id)
+    
+    def __repr__(self) -> str:
+        return f"Utype = {self.name}"
 
 class UnitTypes():
     """
@@ -50,16 +60,16 @@ class UnitTypes():
 
 class Unit(GenericAliveObject):
     unitType: UnitType
-    playerIndex: int
+    playerId: int
     speed: float
     movementProgress: float
     angularSpeed: Angle
     weapons: tuple[Weapon]
 
-    def __init__(self, unitType: UnitType, playerIndex: int, pos: Vector2d = Vector2d(0, 0), angle: Angle = Angle(0)) -> None:
+    def __init__(self, unitType: UnitType, playerId: int, pos: Vector2d = Vector2d(0, 0), angle: Angle = Angle(0)) -> None:
         GenericAliveObject.__init__(self, unitType.hp.value, unitType.hp.armorType, unitType.hp.armor)
         self.unitType = unitType
-        self.playerIndex = playerIndex
+        self.playerId = playerId
         self.pos = pos
         self.angle = angle
         self.speed = unitType.speed
@@ -164,3 +174,17 @@ class Unit(GenericAliveObject):
             isEnough = self.rotate()
             if isEnough:
                 self.move(map)
+
+    def as_bytes(self):
+        return to_bytes((
+            self.unitType,
+            self.playerId,
+            self.pos,
+            self.size,
+            self.angle,
+            self.value,
+            self.weapons
+        ))
+
+    def __repr__(self) -> str:
+        return f"UNIT: <{self.unitType}, {GenericAliveObject.__repr__(self)}, {self.weapons}>"

@@ -36,6 +36,21 @@ class Vector2d:
     def toAngle(self) -> "Angle":
         return Angle(atan2(-self.y, self.x))
 
+    def as_bytes(self) -> bytes:
+        return to_bytes(self.as_tuple())
+    
+    def fast_reach_test(self, other: "Vector2d", mapSize: "Vector2d", dist: float|int) -> bool:
+        divercity = ((other - self + (mapSize / 2)) % mapSize.x - (mapSize / 2))
+        if not (-dist <= divercity.x <= dist and -dist <= divercity.y <= dist):
+            return False
+        if self.distanceLooped(other, mapSize) > dist:
+            return False
+        return True
+
+    @staticmethod
+    def from_bytes(x: bytes) -> "Vector2d":
+        return Vector2d.from_tuple(tuple(from_bytes(x)))
+    
     def __add__(self, other: "Vector2d") -> "Vector2d":
         return Vector2d(self.x + other.x, self.y + other.y)
 
@@ -62,7 +77,7 @@ class Vector2d:
         return Vector2d(operation(self.x, other.x), operation(self.y, other.y))
 
     def __repr__(self) -> str:  # for debugging
-        return "<" + str(self.x) + ", " + str(self.y) + ">"
+        return f"<{self.x}, {self.y}>"
 
     def __eq__(self, other: "Vector2d") -> bool:
         return (self.x == other.x and self.y == other.y)
@@ -99,6 +114,13 @@ class Angle:
     def toVector2D(self) -> Vector2d:
         return Vector2d(cos(self.angle), sin(self.angle))
 
+    def as_bytes(self) -> bytes:
+        return to_bytes(self.angle)
+
+    @staticmethod
+    def from_bytes(x: bytes) -> "Angle":
+        return Angle.from_tuple(tuple(from_bytes(x)))
+
     def __add__(self, other: "Angle") -> "Angle":
         return Angle(self.get() + other.get())
 
@@ -115,6 +137,13 @@ class Mod4:
     def __init__(self, value: int = 0) -> None:
         self.value = value % 4
     
+    def as_bytes(self) -> bool:
+        return (to_bytes(bytes(self.value, )))
+
+    @staticmethod
+    def from_bytes(x: bytes) -> "Mod4":
+        return Mod4(from_bytes(x))
+
     def __add__(self, other: "Mod4") -> "Mod4":
         return Mod4((self.value + other.value) % 4)
     
@@ -183,27 +212,33 @@ def to_bytes(x) -> bytes:
             res[4-i] = int((x // (256 ** (i - 2))) % 256)
     elif type(x) == bool:
         res = bytes((2, int(x)))
+    elif type(x) in (bytes, bytearray):
+        res = bytes((3, x[0]))
     elif type(x) in (tuple, list):
-        res = bytearray(2)
-        res[0] = 3
-        n = 0
+        res = bytearray(1)
+        res[0] = 4
         for item in x:
             if type(item) in (int, float):
                 res.extend(to_bytes(item))
-                n += 5
             elif type(item) == bool:
                 res.extend(to_bytes(item))
-                n += 2
             elif type(item) in (tuple, list):
                 ext = to_bytes(item)
                 res.extend(ext)
-                n += ext[1] + 2
+            elif "as_bytes" in item.__dir__():
+                ext = item.as_bytes()
+                res.extend(ext)
             else:
                 raise Exception(f"{type(item)}({item}) is not alowed")
-        res[1] = n
+        res.append(5)
+    else:
+        if "as_bytes" in x.__dir__():
+            res = x.as_bytes()
+        else:
+            raise Exception(f"{type(x)}({x}) is not alowed")
     return bytes(res)
 
-def from_bytes(x : bytes):
+def from_bytes(x : bytes, is_initial: bool = True):
     if x[0] == 0:
         res = 0
         for i in range(4):
@@ -215,10 +250,11 @@ def from_bytes(x : bytes):
     elif x[0] == 2:
         res = bool(x[1])
     elif x[0] == 3:
+        res = x[1]
+    elif x[0] == 4:
         res = []
-        n = x[1]
-        curr = 2
-        while curr != n + 2:
+        curr = 1
+        while x[curr] != 5:
             if x[curr] in (0, 1):
                 res.append(from_bytes(x[curr: curr + 5]))
                 curr += 5
@@ -226,12 +262,37 @@ def from_bytes(x : bytes):
                 res.append(from_bytes(x[curr: curr + 2]))
                 curr += 2
             elif x[curr] == 3:
-                res.append(from_bytes(x[curr: curr + x[curr + 1] + 2]))
-                curr += x[curr + 1] + 2
-            
+                res.append(from_bytes(x[curr: curr + 2]))
+                curr += 2
+            elif x[curr] == 4:
+                ext, length = from_bytes(x[curr:], False)
+                res.append(ext)
+                curr += length + 1
+        if not is_initial:
+            return (res, curr)
+    else:
+        raise Exception(f"{x[0]} type is not expected. expected (0, 1, 2, 3, 4) for int, float, bytes, bool, list respectively")
+    
     return res
 
+def merge(b1 :bytes, b2: bytes) -> bytes:
+    b1 = bytearray(b1)
+    if b1[0] == 4 and b2[0] == 4:
+        b1.insert(-1, b2[1:-1])
+    elif b1[0] == 4:
+        b1.insert(-1, b2)
+    elif b2[0] == 4:
+        b1.insert(0, 4)
+        b1.extend(b2[1:-1])
+        b1.append(5)
+    else:
+        b1.insert(0, 4)
+        b1.extend(b2)
+        b1.append(5)
+    return bytes(b1)
 
-a = [[2**i * 3**j for i in range(5)] for j in range(5)]
+def print_bytes(b: bytes):
+    for i in b:
+        print(i, end = " ")
+    print()
 
-print((from_bytes(to_bytes(a))))

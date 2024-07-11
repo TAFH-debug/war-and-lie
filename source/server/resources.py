@@ -3,26 +3,28 @@ from .generic import CountAble, GenericObject
 
 class ResourceType:
     name: str
-    index: int
-    # index to access to resources easily. for example: wood is 0 iron is 1 stone is 2
-    # and in c++ or java we could make it with static, but python...
-    # soon there will be something about generation on map
+    idCount = 0
 
-    def __init__(self, name: str, index: int) -> None:
+    def __init__(self, name: str) -> None:
         self.name = name
-        self.index = index
+        self.index = ResourceType.idCount
+        ResourceType.idCount += 1
 
+
+    def as_bytes(self) -> bytes:
+        return to_bytes(self.index)
+    
+    def __repr__(self) -> str:
+        return f"Rtype = {self.name}"
 # Основной класс для ресурсов
 class Resource(CountAble):
-    name: str
-    index: int
+    resourceType: ResourceType
     initial_amount: int
     income: int
 
-    def __init__(self,resourceType: ResourceType, initial_amount: int, income: int) -> None:
+    def __init__(self, resourceType: ResourceType, initial_amount: int, income: int) -> None:
         CountAble.__init__(self, initial_amount, income)
-        self.name = resourceType.name
-        self.index = resourceType.index
+        self.resourceType = resourceType
 
 
     def increase(self, amount: int | None = None) -> None:
@@ -33,27 +35,34 @@ class Resource(CountAble):
 
     def decrease(self, amount: int) -> None:
         self.change(max(self.value - amount, 0))
+    
+    def as_bytes(self) -> bytes:
+        return merge(CountAble.as_bytes(self), ResourceType.as_bytes(self))
 
+    def __repr__(self) -> str:
+        return f"RESOURCE: <{self.resourceType}, {CountAble.__repr__(self)}"
 
 class ResourceTypes:
     """
     Here ought to be all resources in the game
     """
 
-    wood = ResourceType("Wood", 0)
+    wood = ResourceType("Wood")
     
     allResources: list[ResourceType] = [wood]
 # Класс для шахт и деревьев
 class ResourceSource(GenericObject):
     name: str
-    color: tuple[int, int, int]
     production_rate: int
 
-    def __init__(self, id: str, name: str, color: tuple[int, int, int], pos: Vector2d, production_rate: int) -> None:
+    id:int
+    idCount = 0
+
+    def __init__(self, name: str, pos: Vector2d, production_rate: int) -> None:
         GenericObject.__init__(self)
-        self.id = id
+        self.id = ResourceSource.idCount
+        ResourceSource.idCount += 1
         self.name = name
-        self.color = color
         self.pos = pos
         self.production_rate = production_rate
         self.timer = 0
@@ -66,9 +75,14 @@ class ResourceSource(GenericObject):
             return True
         return False
 
+    def as_bytes(self) -> bytes:
+        return merge(GenericObject.as_bytes(self), to_bytes(bytes(self.id, )))
+    
+    def __repr__(self) -> str:
+        return f"RESOURCE_SOURCE: <RStype = {self.name}, {GenericObject.__repr__(self)}>"
 
 class Cost:
-    costs: dict[ResourceType: int]
+    costs: dict[ResourceType, int]
 
     def __init__(self, costs: dict[ResourceType: int]) -> None:
         self.costs = costs
@@ -86,7 +100,12 @@ class Cost:
             else:
                 return False
         return True
+    
+    def as_bytes(self) -> bytes:
+        return to_bytes((merge(resource.as_bytes(), to_bytes(self.costs[resource])) for resource in self.costs))
 
+    def __repr__(self) -> str:
+        return f"cost = {[f"{Rtype}:{self.costs[Rtype]}" for Rtype in self.costs]}"
 
 # Класс для покупки
 class Services:

@@ -2,13 +2,13 @@ from .generic import AliveInArmor, GenericAliveObject
 from .unit import UnitType, UnitTypes, Unit
 from .resources import Cost, ResourceTypes
 from .Map import Map
-from .weapon import Weapon
+from .weapon import Weapon, WeaponType
 
-from server.vmath import Vector2d, Direction
+from server.vmath import Vector2d, Direction, to_bytes, merge
 
 class BuildingType:
-
-    id: str
+    id: int
+    name: str
     size: Vector2d
     hp: AliveInArmor
     cost: Cost
@@ -16,8 +16,12 @@ class BuildingType:
     constructionTime: int
     upgradesTo: "BuildingType"
 
-    def __init__(self, id: str = "wal:building:none", size: Vector2d = Vector2d(1, 1), hp: AliveInArmor = AliveInArmor(0, 0, 0), cost: Cost = Cost({}), constructionTime: int = 0, body: tuple[Vector2d] = None, upgradesTo: "BuildingType" = None) -> None:
-        self.id = id
+    idCount = 0
+
+    def __init__(self, name: str = "wal:building:none", size: Vector2d = Vector2d(1, 1), hp: AliveInArmor = AliveInArmor(0, 0, 0), cost: Cost = Cost({}), constructionTime: int = 0, body: tuple[Vector2d] = None, upgradesTo: "BuildingType" = None) -> None:
+        self.id = BuildingType.idCount
+        BuildingType.idCount += 1
+        self.name = name
         self.size = size
         self.hp = hp
         self.cost = cost
@@ -28,7 +32,7 @@ class BuildingType:
     def upgrade(self):
         BuildingType.__init__(
             self, 
-            self.upgradesTo.id,
+            self.upgradesTo.name,
             self.upgradesTo.size, 
             self.upgradesTo.hp, 
             self.upgradesTo.cost,
@@ -37,18 +41,27 @@ class BuildingType:
             self.upgradesTo.upgradesTo
         )
 
-class Defender(BuildingType):
-    weapons: tuple[Weapon]
+    def as_bytes(self):
+        return to_bytes(self.id)
 
-    def __init__(self, id: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, weapons: tuple[Weapon], body: tuple[Vector2d] = None) -> None:
-        super().__init__(id, size, hp, cost, constructionTime, body)
+    def __repr__(self) -> str:
+        return f"Btype = {self.name}"
+
+class Defender(BuildingType):
+    weapons: tuple[WeaponType]
+
+    def __init__(self, name: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, weapons: tuple[WeaponType], body: tuple[Vector2d] = None) -> None:
+        super().__init__(name, size, hp, cost, constructionTime, body)
         self.weapons = weapons
+    
+    def as_bytes(self):
+        return merge(BuildingType.as_bytes(self), self.weapons)
 
 class Industrial(BuildingType): 
     produces: tuple[UnitType]
 
-    def __init__(self, id: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, produces: tuple[UnitType], producePoint: Vector2d, body: tuple[Vector2d] = None) -> None:
-        BuildingType.__init__(self, id, size, hp, cost, constructionTime, body)
+    def __init__(self, name: str, size: Vector2d, hp: AliveInArmor, cost: Cost, constructionTime: int, produces: tuple[UnitType], producePoint: Vector2d, body: tuple[Vector2d] = None) -> None:
+        BuildingType.__init__(self, name, size, hp, cost, constructionTime, body)
         self.produces = produces
         self.producePoint = producePoint
     
@@ -56,6 +69,8 @@ class Industrial(BuildingType):
         self.produces = self.upgradesTo.produces
         BuildingType.upgrade(self)
 
+    def as_bytes(self):
+            return merge(BuildingType.as_bytes(self), self.produces)
     
 
 class BuildingTypes():
@@ -89,7 +104,7 @@ class Building(GenericAliveObject):
 
     def placeOnMap(self, map: Map) -> None:
         if self.buildingType.body != None:
-            center = (self.size- Vector2d(1, 1)) / 2
+            center = (self.size - Vector2d(1, 1)) / 2
             if self.direction.value % 2 == 1:
                 ncenter = Vector2d(center.y, center.x) 
             else:
@@ -129,6 +144,11 @@ class Building(GenericAliveObject):
             return False
         return True
 
+    def as_bytes(self):
+        return merge(to_bytes(self.buildingType, self.playerIndex, self.direction), GenericAliveObject.as_bytes(self))
+
+    def __repr__(self) -> str:
+        return f"BUILDING: <{self.buildingType}, {GenericAliveObject.__repr__(self)}>"
 
 class IndustrialBuilding(Building):
     def __init__(self, buildingType: Industrial, pos: Vector2d, direction: Direction = Direction(0)) -> None:
@@ -176,6 +196,9 @@ class IndustrialBuilding(Building):
     def spawn_unit(self, unitType: UnitType, map: Map) -> None:
         u = Unit(unitType, self.playerIndex, self.producePoint + self.pos, self.direction.toAngle())
         u.placeOnMap(map)
+    
+    def as_bytes(self):
+        return merge(Building.as_bytes(self), to_bytes(self.trainQueue, self.timer))
 
 class ConstructionSite:
 
