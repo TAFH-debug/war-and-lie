@@ -105,7 +105,7 @@ class Cost:
         return to_bytes((merge(resource.as_bytes(), to_bytes(self.costs[resource])) for resource in self.costs))
 
     def __repr__(self) -> str:
-        return f"cost = {[f"{Rtype}:{self.costs[Rtype]}" for Rtype in self.costs]}"
+        return f"cost = {(f"{Rtype}:{self.costs[Rtype]}" for Rtype in self.costs)}"
 
 # Класс для покупки
 class Services:

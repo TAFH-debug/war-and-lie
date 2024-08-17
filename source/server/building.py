@@ -55,7 +55,7 @@ class Defender(BuildingType):
         self.weapons = weapons
     
     def as_bytes(self):
-        return merge(BuildingType.as_bytes(self), self.weapons)
+        return merge(BuildingType.as_bytes(self), to_bytes(self.weapons))
 
 class Industrial(BuildingType): 
     produces: tuple[UnitType]
@@ -70,7 +70,7 @@ class Industrial(BuildingType):
         BuildingType.upgrade(self)
 
     def as_bytes(self):
-            return merge(BuildingType.as_bytes(self), self.produces)
+        return merge(BuildingType.as_bytes(self), to_bytes(self.produces))
     
 
 class BuildingTypes():
@@ -84,7 +84,7 @@ class BuildingTypes():
         AliveInArmor(3, 10, 100),
         Cost({ResourceTypes.wood: 20}),
         100, 
-        (UnitTypes.ship), 
+        (UnitTypes.ship, ), 
         Vector2d(2, 1),
         (Vector2d(i%3, i//3) for i in (0, 1, 2, 3, 4, 6, 7, 8)))
 
@@ -92,6 +92,8 @@ class Building(GenericAliveObject):
     buildingType: BuildingType
     playerIndex: int
     direction: Direction
+    completed: bool
+    needUpdate: bool
 
     def __init__(self, buildingType: BuildingType, playerIndex: int, pos: Vector2d, direction: Direction = Direction(0)) -> None:
         GenericAliveObject.__init__(self, buildingType.hp.value, buildingType.hp.armorType, buildingType.hp.armor)
@@ -101,6 +103,8 @@ class Building(GenericAliveObject):
         self.buildingType = buildingType
         self.direction = direction
         self.buildingProgress = self.buildingType.constructionTime
+        self.completed = False
+        self.needUpdate = False
 
     def placeOnMap(self, map: Map) -> None:
         if self.buildingType.body != None:
@@ -138,21 +142,43 @@ class Building(GenericAliveObject):
     def repair(self):
         pass
 
-    def update(self) -> bool:
+    def constructing(self):
         if self.buildingProgress != 0:
             self.buildingProgress -= 1
-            return False
-        return True
+        else:
+            self.completed = True
+
+    def update(self) -> tuple[bool, bool]:
+        """
+        Updates building events
+        returns if changes occur and if vision update is required
+        """
+        self.needUpdate = False
+        needVisionUpdate = False
+        if self.buildingProgress == self.buildingType.constructionTime:
+            self.needUpdate = True
+            needVisionUpdate = True
+        if not self.completed:
+            self.constructing()
+            if self.completed:
+                self.needUpdate = True
+        if not self.isAlive():
+            self.needUpdate = True
+            needVisionUpdate = True
+        return (self.needUpdate, needVisionUpdate)
 
     def as_bytes(self):
-        return merge(to_bytes(self.buildingType, self.playerIndex, self.direction), GenericAliveObject.as_bytes(self))
+        return merge(to_bytes((self.buildingType, self.playerIndex, self.direction)), GenericAliveObject.as_bytes(self))
 
     def __repr__(self) -> str:
         return f"BUILDING: <{self.buildingType}, {GenericAliveObject.__repr__(self)}>"
 
 class IndustrialBuilding(Building):
+    buildingType: Industrial
+
     def __init__(self, buildingType: Industrial, pos: Vector2d, direction: Direction = Direction(0)) -> None:
         Building.__init__(self, buildingType, pos, direction)
+        self.buildingType = buildingType
         self.producePoint = buildingType.producePoint
         self.trainQueue: list[UnitType] = []
         self.timer: int = 0
@@ -175,30 +201,36 @@ class IndustrialBuilding(Building):
         else:
             raise ValueError(f"produce queue is empty")
 
-    def train(self) -> None:
+    def train(self, world: Map, playerUnits: list[Unit]) -> None:
         if len(self.trainQueue) == 0:
             raise ValueError("No units in queue to train")
         
         unitType = self.trainQueue[0]
-        self.spawn_unit(unitType)
+        self.spawn_unit(unitType, world, playerUnits)
 
-    def update(self) -> bool:
-        if not Building.update(self):
-            return False
+    def update(self, world:Map, playerUnits: list[Unit]) -> tuple[bool, bool]:
+        """
+        updates industrial events
+        returns if changes occur and if vision update is required
+        """
+        self.needUpdate, needVisionUpdate = Building.update(self)
         if len(self.trainQueue) > 0:
             self.timer += 1
             if self.timer >= self.trainQueue[0].productionTime:
-                self.train()
+                self.train(world, playerUnits)
                 self.trainQueue.pop(0)
                 self.timer = 0
-        return True
+                self.needUpdate = True
+                needVisionUpdate = True
+        return (self.needUpdate, needVisionUpdate)
 
-    def spawn_unit(self, unitType: UnitType, map: Map) -> None:
+    def spawn_unit(self, unitType: UnitType, world: Map, playerUnits: list[Unit]) -> None:
         u = Unit(unitType, self.playerIndex, self.producePoint + self.pos, self.direction.toAngle())
-        u.placeOnMap(map)
+        playerUnits.append(u)
+        u.placeOnMap(world)
     
     def as_bytes(self):
-        return merge(Building.as_bytes(self), to_bytes(self.trainQueue, self.timer))
+        return merge(Building.as_bytes(self), to_bytes((self.trainQueue, self.timer)))
 
 class ConstructionSite:
 

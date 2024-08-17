@@ -1,5 +1,5 @@
 from .generic import GenericMap
-from .tile import Tile, Landscapes
+from .tile import Tile, Landscape, Landscapes
 
 from server.vmath import Vector2d
 
@@ -13,3 +13,8 @@ class Map(GenericMap[Tile]):
             for x in range(self.size.intx())] 
             for y in range(self.size.inty())]
     
+    def fill(self, landscape: Landscape):
+        self.Map = [[
+            Tile(Vector2d(x, y), landscape) 
+            for x in range(self.size.intx())] 
+            for y in range(self.size.inty())]

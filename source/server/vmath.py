@@ -47,6 +47,21 @@ class Vector2d:
             return False
         return True
 
+    def getQuarter(self) -> int:
+        if self.x == 0 and self.y == 0:
+            return 0
+        if self.x >= 0 and self.y >= 0:
+            return 1
+        elif self.x <= 0 and self.y <= 0:
+            return 3
+        elif self.x < 0:
+            return 2
+        elif self.y < 0:
+            return 4
+
+    def isInBox(self, other1: "Vector2d", other2: "Vector2d") -> bool:
+        return ((self - other1) * (other2 - other1)).getQuarter() == 1 and ((other2 - other1) * (other2 - other1) - (self - other1) * (self - other1)).getQuarter() == 1
+
     @staticmethod
     def from_bytes(x: bytes) -> "Vector2d":
         return Vector2d.from_tuple(tuple(from_bytes(x)))
@@ -57,20 +72,23 @@ class Vector2d:
     def __sub__(self, other: "Vector2d") -> "Vector2d":
         return Vector2d(self.x - other.x, self.y - other.y)
 
-    def __mul__(self, other: float):
-        return Vector2d(self.x * other, self.y * other)
+    def __mul__(self, other: "float|Vector2d") -> "Vector2d":
+        if type(other) == Vector2d:
+            return Vector2d(self.x * other.x, self.y * other.y)
+        else:
+            return Vector2d(self.x * other, self.y * other)
     
     def complexMultiply(self, other: "Vector2d") -> "Vector2d":
         # complex multiplying
         return Vector2d(self.x * other.x - self.y * other.y, self.y * other.x + self.x * other.y)
 
-    def __truediv__(self, other: float):
+    def __truediv__(self, other: float) -> "Vector2d":
         return Vector2d(self.x / other, self.y / other)
 
-    def __floordiv__(self, other: float):
+    def __floordiv__(self, other: float) -> "Vector2d":
         return Vector2d(self.x // other, self.y // other)
     
-    def __mod__(self, other: float):
+    def __mod__(self, other: float) -> "Vector2d":
         return Vector2d(self.x % other, self.y % other)
 
     def operation(self, other: "Vector2d", operation: Callable[[float, float], float]) -> "Vector2d":
@@ -138,7 +156,7 @@ class Mod4:
         self.value = value % 4
     
     def as_bytes(self) -> bool:
-        return (to_bytes(bytes(self.value, )))
+        return (to_bytes(bytes((self.value, ))))
 
     @staticmethod
     def from_bytes(x: bytes) -> "Mod4":
@@ -277,10 +295,15 @@ def from_bytes(x : bytes, is_initial: bool = True):
 
 def merge(b1 :bytes, b2: bytes) -> bytes:
     b1 = bytearray(b1)
+    b2 = bytearray(b2)
     if b1[0] == 4 and b2[0] == 4:
-        b1.insert(-1, b2[1:-1])
+        b1.pop(-1)
+        b1.extend(b2[1:-1])
+        b1.append(5)
     elif b1[0] == 4:
-        b1.insert(-1, b2)
+        b1.pop(-1)
+        b1.extend(b2)
+        b1.append(5)
     elif b2[0] == 4:
         b1.insert(0, 4)
         b1.extend(b2[1:-1])

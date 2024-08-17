@@ -55,7 +55,7 @@ class UnitTypes():
     Here must be all unit types in the game
     """
 
-    ship = UnitType("wal:unit:ship", Vector2d(2, 2), 0.76, Angle(1 / 9 * pi), (UnitLocatingTypes.ON_WATER,), 9, AliveInArmor(3, 30, 6000), (WeaponTypes.shipCanon,), Cost({ResourceTypes.wood: 3}), 1000)
+    ship = UnitType("wal:unit:ship", Vector2d(2, 2), 0.76, Angle(1 / 9 * pi), (UnitLocatingTypes.ON_WATER,), 9, AliveInArmor(3, 30, 6000), (WeaponTypes.shipCanon,), Cost({ResourceTypes.wood: 3}), 100)
     miner = UnitType("wal:unit:miner", Vector2d(1, 1), 1.2, Angle(1 / 4 * pi), (UnitLocatingTypes.ON_GROUND,), 6, AliveInArmor(1, 4, 1300), (WeaponTypes.minerPickaxe,), Cost({ResourceTypes.wood: 1}), 320)
 
 class Unit(GenericAliveObject):
@@ -65,6 +65,7 @@ class Unit(GenericAliveObject):
     movementProgress: float
     angularSpeed: Angle
     weapons: tuple[Weapon]
+    needUpdate: bool
 
     def __init__(self, unitType: UnitType, playerId: int, pos: Vector2d = Vector2d(0, 0), angle: Angle = Angle(0)) -> None:
         GenericAliveObject.__init__(self, unitType.hp.value, unitType.hp.armorType, unitType.hp.armor)
@@ -77,6 +78,7 @@ class Unit(GenericAliveObject):
         self.weapons = tuple(Weapon(wType, pos, angle) for wType in unitType.weapons)
         self.size = unitType.size
         self.path: list[Tile] = []
+        self.needUpdate = True
 
     def pathFinding(self, map: Map, endPoint: Tile) -> list[Tile]:  # A* algorithm
         # да здравствует лапша-код!
@@ -162,18 +164,36 @@ class Unit(GenericAliveObject):
             self.angle = self.angle - Angle(self.angularSpeed.angle / 20)
             return False
 
-    def move(self, map: Map):  #
+    # returns whether unit changed its position
+    def move(self, map: Map) -> bool:
         self.movementProgress += self.speed / 20
         if self.movementProgress >= self.path[0].pos.distanceLooped(self.pos, map.size):
             self.movementProgress -= self.path[0].pos.distanceLooped(self.pos, map.size)
             self.setPos(self.path[0].pos, map)
             self.path.pop(0)
+            return True
+        return False
 
-    def update(self, map: Map):
+    def update(self, map: Map) -> tuple[bool, bool]:
+        """
+        updates parameters of unit
+        returns whether unit's outside parameters had changed and if vision have to be changed
+        """
+        self.needUpdate = False
+        needVisionUpdate = False
         if len(self.path) != 0:
             isEnough = self.rotate()
             if isEnough:
-                self.move(map)
+                moved = self.move(map)
+                self.needUpdate |= moved
+                needVisionUpdate |= moved
+            else: 
+                self.needUpdate = True
+        # TODO weapon rotating, reloading and shooting
+        if not self.isAlive():
+            self.needUpdate = True
+            needVisionUpdate = True
+        return (self.needUpdate, needVisionUpdate)
 
     def as_bytes(self):
         return to_bytes((

@@ -5,16 +5,20 @@ from server.vmath import Vector2d, to_bytes
 class Landscape:
     # TODO some other parameters are required
     passability: int  # multiply the time needed for unit to pass this tile by passability
+    isWater: bool # capability of water units to stand on the tile
+    ishigh: bool # capability of ONLY flying units to stand on the tile
     name: str
     id: int
 
     idCount = 0
 
-    def __init__(self, name: str, passability: int) -> None:
+    def __init__(self, name: str, passability: int, isWater: bool = False, ishigh: bool = False) -> None:
         self.id = Landscape.idCount
         Landscape.idCount += 1
         self.name = name
         self.passability = passability
+        self.isWater = isWater
+        self.ishigh = ishigh
     
     def __eq__(self, other: "Landscape") -> bool:
         return self.id == other.id 
@@ -27,7 +31,7 @@ class Landscapes():
     Here shall be all landscape types in the game
     """
     # example landscape
-    water = Landscape("wal:tile:water", 2)
+    water = Landscape("wal:tile:water", 2, True)
 
 
 class Tile(GenericObject):
