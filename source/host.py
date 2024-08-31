@@ -1,4 +1,5 @@
-import socket, threading, time
+import socket, threading, time, ipaddress
+
 
 from server.player import *
 from server.unit import UnitTypes
@@ -25,19 +26,29 @@ class Host:
         self.sendthreads: list[threading.Thread] = [] 
         hostname = socket.gethostname()
         IPaddr = socket.gethostbyname(hostname)
-
-        # TODO normal check if the IP address is valid
-        print(f"is {IPaddr} valid? [y/n]")
-        if input() != "y":
-            IPaddr = input("write needed IP: ")
-        self.sock.bind((IPaddr, 9090))
-        self.sock.listen(self.playerNumber)
+        if not self.validate_ip(IPaddr):
+            print(f"IP address {IPaddr} is not valid.")
+            IPaddr = input("Enter a valid IP address: ")
+        
+        try:
+            self.sock.bind((IPaddr, 9090))
+            self.sock.listen(self.playerNumber)
+        except socket.error as e:
+            print(f"Socket error: {e}")
+            return []
         for i in range(self.playerNumber):
             conn, _ = self.sock.accept()
             self.connections.append(conn)
         for i in range(self.playerNumber):
             self.recvthreads.append(threading.Thread(target=self.recvData, args=[i]))
             self.recvthreads[i].start()
+    
+    def validate_ip(self, ip: str) -> bool:
+        try:
+            ipaddress.ip_address(ip)
+            return True
+        except ValueError:
+            return False
 
     def initGame(self) -> None:
         self.game = Game("Game", self.playerNumber, Vector2d(30, 30))
@@ -83,8 +94,11 @@ class Host:
         time.sleep(0.05)
         
     def close(self):
+        for conn in self.connections:
+            conn.close()
+        for thread in self.recvthreads:
+            thread.join()
         self.sock.close()
-        # TODO kill all the threads please
 
 a = Host(2)
 a.initGame()
