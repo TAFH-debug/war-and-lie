@@ -49,7 +49,7 @@ class Vector2d:
 
     def getQuarter(self) -> int:
         if self.x == 0 and self.y == 0:
-            return 0
+            return 1
         if self.x >= 0 and self.y >= 0:
             return 1
         elif self.x <= 0 and self.y <= 0:

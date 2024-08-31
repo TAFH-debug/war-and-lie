@@ -69,10 +69,6 @@ class Industrial(BuildingType):
         self.produces = self.upgradesTo.produces
         BuildingType.upgrade(self)
 
-    def as_bytes(self):
-        return merge(BuildingType.as_bytes(self), to_bytes(self.produces))
-    
-
 class BuildingTypes():
     """
     Here have to be all buildings in the game
@@ -153,7 +149,6 @@ class Building(GenericAliveObject):
         Updates building events
         returns if changes occur and if vision update is required
         """
-        self.needUpdate = False
         needVisionUpdate = False
         if self.buildingProgress == self.buildingType.constructionTime:
             self.needUpdate = True
@@ -165,7 +160,9 @@ class Building(GenericAliveObject):
         if not self.isAlive():
             self.needUpdate = True
             needVisionUpdate = True
-        return (self.needUpdate, needVisionUpdate)
+        res = (self.needUpdate, needVisionUpdate)
+        self.needUpdate = False
+        return res
 
     def as_bytes(self):
         return merge(to_bytes((self.buildingType, self.playerIndex, self.direction)), GenericAliveObject.as_bytes(self))
@@ -204,25 +201,33 @@ class IndustrialBuilding(Building):
     def train(self, world: Map, playerUnits: list[Unit]) -> None:
         if len(self.trainQueue) == 0:
             raise ValueError("No units in queue to train")
-        
+        if world.get(self.producePoint + self.pos).isTaken:
+            return False
         unitType = self.trainQueue[0]
         self.spawn_unit(unitType, world, playerUnits)
+        return True
 
     def update(self, world:Map, playerUnits: list[Unit]) -> tuple[bool, bool]:
         """
         updates industrial events
         returns if changes occur and if vision update is required
         """
+        tmp = self.needUpdate
         self.needUpdate, needVisionUpdate = Building.update(self)
+        self.needUpdate |= tmp
         if len(self.trainQueue) > 0:
             self.timer += 1
             if self.timer >= self.trainQueue[0].productionTime:
-                self.train(world, playerUnits)
-                self.trainQueue.pop(0)
-                self.timer = 0
-                self.needUpdate = True
-                needVisionUpdate = True
-        return (self.needUpdate, needVisionUpdate)
+                if self.train(world, playerUnits):
+                    self.trainQueue.pop(0)
+                    self.timer = 0
+                    self.needUpdate = True
+                    needVisionUpdate = True
+                else:
+                    self.timer -= 1
+        res = (self.needUpdate, needVisionUpdate)
+        self.needUpdate = False
+        return res
 
     def spawn_unit(self, unitType: UnitType, world: Map, playerUnits: list[Unit]) -> None:
         u = Unit(unitType, self.playerIndex, self.producePoint + self.pos, self.direction.toAngle())

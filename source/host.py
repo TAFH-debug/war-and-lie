@@ -3,6 +3,7 @@ import socket, threading, time
 from server.player import *
 from server.unit import UnitTypes
 from server.vmath import from_bytes
+from random import randint as rd
 
 
 class Host:
@@ -26,9 +27,9 @@ class Host:
         IPaddr = socket.gethostbyname(hostname)
 
         # TODO normal check if the IP address is valid
-        # print(f"is {IPaddr} valid? [y/n]")
-        # if input() != "y":
-        #     IPaddr = input("write needed IP: ")
+        print(f"is {IPaddr} valid? [y/n]")
+        if input() != "y":
+            IPaddr = input("write needed IP: ")
         self.sock.bind((IPaddr, 9090))
         self.sock.listen(self.playerNumber)
         for i in range(self.playerNumber):
@@ -39,19 +40,17 @@ class Host:
             self.recvthreads[i].start()
 
     def initGame(self) -> None:
-        self.game = Game("Game", self.playerNumber, Vector2d(10, 10))
+        self.game = Game("Game", self.playerNumber, Vector2d(30, 30))
         self.game.initTest()
 
     # Send data to player and wait untill getting verification that he recieved it
     def sendData(self, playerIndex: int) -> None:
         a = self.game.getPlayersData(playerIndex)
         self.connections[playerIndex].send(bytes(a))
+        self.game.players[playerIndex].vision_updates = [[False for i in range(30)] for j in range(30)]
 
     # Wait untill getting data from player and then write it in recvthreads_results
     def recvData(self, playerIndex: int) -> None:
-        # for i in range(5):
-        #     print("it is like recieving", i, "for slower debug process")
-        #     time.sleep(1)
         data = self.connections[playerIndex].recv(1024)
         self.recvthreads_results[playerIndex] = data
         # programm stops waiting for recv()
@@ -64,9 +63,12 @@ class Host:
                 # The thing here is just test version
                 gotten = from_bytes(self.recvthreads_results[i])
                 if gotten[0] != False:
-                    print(gotten)
-                    for building in self.game.players[0].buildings:
-                        building.addToQueue(UnitTypes.ship)
+                    for building in self.game.players[i].buildings:
+                        if len(building.trainQueue) <= 1:
+                            building.addToQueue(UnitTypes.ship)
+                    for unit in self.game.players[i].units:
+                        if len(unit.path) == 0:
+                            unit.pathFinding(self.game.world, self.game.world.get((unit.pos + Vector2d(3, rd(-1, 1)))))
                 
                 if (self.PlayersneedUpdate // (2 ** i)) % 2:
                     self.sendData(i)
@@ -78,17 +80,15 @@ class Host:
     def iteration(self) -> None:
         self.PlayersneedUpdate = self.game.iteration() 
         self.playersControl()
-        for building in self.game.players[0].buildings:
-            print(from_bytes(to_bytes(building)))
         time.sleep(0.05)
         
     def close(self):
         self.sock.close()
         # TODO kill all the threads please
 
-a = Host()
-a.initSockets()
+a = Host(2)
 a.initGame()
+a.initSockets()
 while True:
     a.iteration()
 

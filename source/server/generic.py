@@ -147,7 +147,7 @@ class GenericMap[T]:
         return self.Map[index]
 
     def get(self, pos: Vector2d) -> T:
-        return self.Map[pos.inty()][pos.intx()]
+        return self.Map[pos.inty() % self.size.inty()][pos.intx() % self.size.intx()]
 
     def initEmpty(self) -> None:
         self.Map = [[

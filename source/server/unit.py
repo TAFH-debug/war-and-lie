@@ -55,7 +55,7 @@ class UnitTypes():
     Here must be all unit types in the game
     """
 
-    ship = UnitType("wal:unit:ship", Vector2d(2, 2), 0.76, Angle(1 / 9 * pi), (UnitLocatingTypes.ON_WATER,), 9, AliveInArmor(3, 30, 6000), (WeaponTypes.shipCanon,), Cost({ResourceTypes.wood: 3}), 100)
+    ship = UnitType("wal:unit:ship", Vector2d(1, 1), 0.76, Angle(1 / 9 * pi), (UnitLocatingTypes.ON_WATER,), 9, AliveInArmor(3, 30, 6000), (WeaponTypes.shipCanon,), Cost({ResourceTypes.wood: 3}), 300)
     miner = UnitType("wal:unit:miner", Vector2d(1, 1), 1.2, Angle(1 / 4 * pi), (UnitLocatingTypes.ON_GROUND,), 6, AliveInArmor(1, 4, 1300), (WeaponTypes.minerPickaxe,), Cost({ResourceTypes.wood: 1}), 320)
 
 class Unit(GenericAliveObject):
@@ -78,6 +78,7 @@ class Unit(GenericAliveObject):
         self.weapons = tuple(Weapon(wType, pos, angle) for wType in unitType.weapons)
         self.size = unitType.size
         self.path: list[Tile] = []
+        self.movementProgress = 0
         self.needUpdate = True
 
     def pathFinding(self, map: Map, endPoint: Tile) -> list[Tile]:  # A* algorithm
@@ -102,7 +103,6 @@ class Unit(GenericAliveObject):
                     currInd = i
                     Min = opened[i][1] + opened[i][2]
             current = opened[currInd]
-            # print(current[0].pos, current[1], current[2])
             opened.remove(current)
             closed.append(current)
             if current[0] == endPoint:
@@ -179,21 +179,22 @@ class Unit(GenericAliveObject):
         updates parameters of unit
         returns whether unit's outside parameters had changed and if vision have to be changed
         """
-        self.needUpdate = False
-        needVisionUpdate = False
+        needVisionUpdate = self.needUpdate
         if len(self.path) != 0:
             isEnough = self.rotate()
             if isEnough:
                 moved = self.move(map)
                 self.needUpdate |= moved
                 needVisionUpdate |= moved
-            else: 
-                self.needUpdate = True
+            # else: 
+            #     self.needUpdate = True
         # TODO weapon rotating, reloading and shooting
         if not self.isAlive():
             self.needUpdate = True
             needVisionUpdate = True
-        return (self.needUpdate, needVisionUpdate)
+        res = (self.needUpdate, needVisionUpdate)
+        self.needUpdate = False
+        return res
 
     def as_bytes(self):
         return to_bytes((

@@ -36,7 +36,7 @@ class Player:
         self.vision_updates = [[True for _ in world] for _ in world[0]]
 
     def initTest(self, world: Map) -> None:
-        self.units = [] 
+        self.units = [Unit(BuildingTypes.shipYard.produces[0], self.id, Vector2d(10 + self.id * 5, 10 + self.id * 5))] 
         self.buildings = [IndustrialBuilding(BuildingTypes.shipYard, self.id, Vector2d(self.id * 5 + 3, self.id * 5 + 3))]
         self.techs = []
         self.visible = []
@@ -48,17 +48,25 @@ class Player:
     def updateVision(self, world: Map) -> bool:
         self.vision_updates = [[False for _ in world] for _ in world[0]]
         needUpdate = False
-        for unit in self.units:
-            for y in range(len(self.vision)):
-                for x in range(len(self.vision[y])):
-                    if self.vision[y][x]:
-                        if not unit.pos.fast_reach_test(Vector2d(x, y), world.size, unit.unitType.visionRange):
-                            self.vision[y][x] = False
+        for y in range(len(self.vision)):
+            for x in range(len(self.vision[y])):
+                if self.vision[y][x]:
+                    self.vision[y][x] = False
+                    self.vision_updates[y][x] = True
+                    for unit in self.units:
+                        if unit.pos.fast_reach_test(Vector2d(x, y), world.size, unit.unitType.visionRange):
+                            self.vision[y][x] = True
+                            self.vision_updates[y][x] = False
+                            continue
+                    needUpdate |= self.vision_updates[y][x]
+                else:
+                    for unit in self.units:
+                        if unit.pos.fast_reach_test(Vector2d(x, y), world.size, unit.unitType.visionRange):
                             needUpdate = True
-                    elif unit.pos.fast_reach_test(Vector2d(x, y), world.size, unit.unitType.visionRange):
-                        needUpdate = True
-                        self.vision[y][x] = True
-                        self.vision_updates[y][x] = True
+                            self.vision[y][x] = True
+                            self.vision_updates[y][x] = True
+                            needUpdate = True
+                            continue
         return needUpdate
 
     def iteration(self, world: Map) -> bool:
@@ -78,12 +86,12 @@ class Player:
             res = building.update(world, self.units)
             needUpdate |= res[0]
             needVisionUpdate |= res[1]
-        if needVisionUpdate:
-            needUpdate |= self.updateVision(world)
         for obj in self.visible:
             if obj.needUpdate:
                 needUpdate = True
                 break
+        if needVisionUpdate:
+            needUpdate |= self.updateVision(world)
         return needUpdate
 
     def __repr__(self) -> str:
